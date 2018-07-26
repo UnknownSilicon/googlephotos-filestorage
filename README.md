@@ -13,3 +13,6 @@ The program takes each byte of the file and encodes it into the r, g, or b chann
 
 - Implement the alpha channel to allow for increased data density
 - Add checksum verification
+- Automatic Upload
+- List available files
+- Support for larger files (break down into smaller files)
