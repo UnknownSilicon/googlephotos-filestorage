@@ -33,23 +33,40 @@ public class Main {
                 isFileValid = file.exists();
             }
 
-            fileStr = "";
             File outputFile = null;
 
             System.out.println("Output File: ");
             fileStr = scan.nextLine();
             outputFile = new File(fileStr);
 
-            encode(file);
+            encode(file, outputFile);
         } else if (s.equals("d")) {
+            String fileStr = "";
+            File file = null;
+            boolean isFileValid = false;
 
+            while(!isFileValid) {
+                System.out.println("Input file: ");
+                fileStr = scan.nextLine();
+                file = new File(fileStr);
+
+                isFileValid = file.exists();
+            }
+
+            File outputFile = null;
+
+            System.out.println("Output File: ");
+            fileStr = scan.nextLine();
+            outputFile = new File(fileStr);
+
+            decode(ImageIO.read(file), outputFile);
         } else {
             System.out.println("Something Broke");
         }
 
     }
 
-    public static void decode(BufferedImage image) throws IOException {
+    public static void decode(BufferedImage image, File outputFile) throws IOException {
         long startTime = System.nanoTime();
         FastRGB fastRGB = new FastRGB(image);
 
@@ -72,7 +89,7 @@ public class Main {
 
         // File should be encoded in data
 
-        FileOutputStream fos = new FileOutputStream(new File("output.apk"));
+        FileOutputStream fos = new FileOutputStream(outputFile);
 
         fos.write(data);
         fos.close();
@@ -84,7 +101,7 @@ public class Main {
         System.out.println("Decoded in: " + deltaTime + " seconds");
     }
 
-    public static void encode(File file) throws IOException {
+    public static void encode(File file, File outputFile) throws IOException {
         long startTime = System.nanoTime();
         if (!file.exists()) {
             System.out.println("File does not exist!");
@@ -153,9 +170,7 @@ public class Main {
         }*/
 
         BufferedImage image = ic.getImage();
-
-        File output = new File("output.png");
-        ImageIO.write(image, "png", output);
+        ImageIO.write(image, "png", outputFile);
 
         long endTime = System.nanoTime();
 
