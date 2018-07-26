@@ -10,15 +10,16 @@ import java.security.NoSuchAlgorithmException;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        //File file = new File("ProtoRio0p7.apk");
+        File file = new File("test.txt");
 
-        //encode(file);
+        encode(file);
 
-        decode(ImageIO.read(new File("output.png")));
+        //decode(ImageIO.read(new File("output.png")));
 
     }
 
     public static void decode(BufferedImage image) throws IOException {
+        long startTime = System.nanoTime();
         FastRGB fastRGB = new FastRGB(image);
 
         int size = image.getHeight()*image.getWidth();
@@ -44,9 +45,16 @@ public class Main {
 
         fos.write(data);
         fos.close();
+
+        long endTime = System.nanoTime();
+
+        double deltaTime = (double)(endTime - startTime)/1000000000.0;
+
+        System.out.println("Decoded in: " + deltaTime + " seconds");
     }
 
     public static void encode(File file) throws IOException {
+        long startTime = System.nanoTime();
         if (!file.exists()) {
             System.out.println("File does not exist!");
             System.exit(1);
@@ -117,6 +125,12 @@ public class Main {
 
         File output = new File("output.png");
         ImageIO.write(image, "png", output);
+
+        long endTime = System.nanoTime();
+
+        double deltaTime = (double)(endTime - startTime)/1000000000.0;
+
+        System.out.println("Encoded in: " + deltaTime + " seconds");
     }
 
 }
