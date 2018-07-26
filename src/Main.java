@@ -7,14 +7,45 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
+import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) throws IOException {
-        File file = new File("test.txt");
+        Scanner scan = new Scanner(System.in);
 
-        encode(file);
+        String s = "";
 
-        //decode(ImageIO.read(new File("output.png")));
+        while (!s.equals("e") && !s.equals("d")) {
+            System.out.println("Encode (e) or Decode (d)?");
+            s = scan.nextLine();
+        }
+
+        if (s.equals("e")) {
+            String fileStr = "";
+            File file = null;
+            boolean isFileValid = false;
+
+            while(!isFileValid) {
+                System.out.println("Input file: ");
+                fileStr = scan.nextLine();
+                file = new File(fileStr);
+
+                isFileValid = file.exists();
+            }
+
+            fileStr = "";
+            File outputFile = null;
+
+            System.out.println("Output File: ");
+            fileStr = scan.nextLine();
+            outputFile = new File(fileStr);
+
+            encode(file);
+        } else if (s.equals("d")) {
+
+        } else {
+            System.out.println("Something Broke");
+        }
 
     }
 
