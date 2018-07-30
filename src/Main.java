@@ -206,7 +206,11 @@ public class Main {
                 try {
                     ic.drawPixel(row, col, new Color(checksum[i] & 0xFF, checksum[i + 1] & 0xFF, 0));
                 } catch (ArrayIndexOutOfBoundsException ee) {
-                    ic.drawPixel(row, col, new Color(checksum[i] & 0xFF, 0, 0));
+                	try {
+						ic.drawPixel(row, col, new Color(checksum[i] & 0xFF, 0, 0));
+					} catch (ArrayIndexOutOfBoundsException eee) {
+
+					}
                 }
             }
             pixleNum++;
