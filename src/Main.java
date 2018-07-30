@@ -153,15 +153,13 @@ public class Main {
 
 		FileInputStream fis = new FileInputStream(file);
 
-		double size = (double) Math.toIntExact(file.length());
+		long size = file.length();
 
 		byte[] checksum = Checksum.getFileChecksum(file);
 
 		size += checksum.length;
 
-		size /= 3;
-
-		int closestSquare = (int) Math.ceil(Math.sqrt(size));
+		int closestSquare = (int) Math.ceil(Math.sqrt(Long.divideUnsigned(size, 3L)));
 
 		ImageCreator ic = new ImageCreator(closestSquare, closestSquare);
 
@@ -169,23 +167,22 @@ public class Main {
 
 		byte[] byteArray = new byte[4096];
 		int bytesCount = 0;
-		int previousBytes = 0;
 
 		while ((bytesCount = fis.read(byteArray)) != -1) {
-			for (int i = previousBytes; i < bytesCount + previousBytes; i += 3) {
+			for (int i = 0; i < bytesCount; i += 3) {
 				int row = (pixleNum - (pixleNum % closestSquare)) / closestSquare;
 				int col = (pixleNum - closestSquare * row);
 
 				try {
-					ic.drawPixel(row, col, new Color(byteArray[i - previousBytes] & 0xFF,
-							byteArray[i - previousBytes + 1] & 0xFF, byteArray[i - previousBytes + 2] & 0xFF));
+					ic.drawPixel(row, col, new Color(byteArray[i] & 0xFF,
+							byteArray[i + 1] & 0xFF, byteArray[i + 2] & 0xFF));
 				} catch (ArrayIndexOutOfBoundsException e) {
 					try {
-						ic.drawPixel(row, col, new Color(byteArray[i - previousBytes] & 0xFF,
-								byteArray[i - previousBytes + 1] & 0xFF, 0));
+						ic.drawPixel(row, col, new Color(byteArray[i] & 0xFF,
+								byteArray[i + 1] & 0xFF, 0));
 					} catch (ArrayIndexOutOfBoundsException ee) {
 						try {
-							ic.drawPixel(row, col, new Color(byteArray[i - previousBytes] & 0xFF, 0, 0));
+							ic.drawPixel(row, col, new Color(byteArray[i] & 0xFF, 0, 0));
 						} catch (ArrayIndexOutOfBoundsException eee) {
 
 						}
@@ -193,7 +190,6 @@ public class Main {
 				}
 				pixleNum++;
 			}
-			previousBytes = bytesCount;
 		}
 
         for (int i=0; i<checksum.length; i+=3) {
