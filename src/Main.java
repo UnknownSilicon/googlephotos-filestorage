@@ -86,7 +86,7 @@ public class Main {
 			}
 		}
 
-		byte[] checksum = new byte[20];
+		byte[] checksum;
 
 		int firstIndex = 0;
 		int lastIndex = 0;
@@ -100,11 +100,11 @@ public class Main {
 			}
 		}
 
-		System.arraycopy(data, firstIndex+1, checksum, 0, 20);
+		checksum = Arrays.copyOfRange(data, firstIndex+1, firstIndex+21);
 
-		byte[] newData = new byte[firstIndex];
+		byte[] newData = new byte[firstIndex+1];
 
-		for (int i=0; i<firstIndex; i++) {
+		for (int i=0; i<firstIndex+1; i++) {
 			newData[i] = data[i];
 		}
 
@@ -166,6 +166,7 @@ public class Main {
 		int pixleNum = 0;
 
 		byte[] byteArray = new byte[4096];
+		byte[] tempStorage = new byte[0];
 		int bytesCount = 0;
 
 		while ((bytesCount = fis.read(byteArray)) != -1) {
@@ -174,10 +175,33 @@ public class Main {
 				int col = (pixleNum - closestSquare * row);
 
 				try {
-					ic.drawPixel(row, col, new Color(byteArray[i] & 0xFF,
-							byteArray[i + 1] & 0xFF, byteArray[i + 2] & 0xFF));
+
+					if (tempStorage.length == 1) {
+						ic.drawPixel(row, col, new Color(tempStorage[0] & 0xFF,
+								byteArray[i] & 0xFF, byteArray[i + 1] & 0xFF));
+						i--;
+						tempStorage = new byte[0];
+					} else if (tempStorage.length == 2) {
+						ic.drawPixel(row, col, new Color(tempStorage[0] & 0xFF,
+								tempStorage[1] & 0xFF, byteArray[i] & 0xFF));
+						i-=2;
+						tempStorage = new byte[0];
+					} else {
+
+						ic.drawPixel(row, col, new Color(byteArray[i] & 0xFF,
+								byteArray[i + 1] & 0xFF, byteArray[i + 2] & 0xFF));
+					}
+
 				} catch (ArrayIndexOutOfBoundsException e) {
-					try {
+
+					if (tempStorage.length != 0) {
+						System.out.println("Something broke");
+					}
+
+					tempStorage = Arrays.copyOfRange(byteArray, i, byteArray.length); // Copy up to the last two bytes
+					pixleNum--; // Counteract the ++
+
+					/*try {
 						ic.drawPixel(row, col, new Color(byteArray[i] & 0xFF,
 								byteArray[i + 1] & 0xFF, 0));
 					} catch (ArrayIndexOutOfBoundsException ee) {
@@ -186,7 +210,7 @@ public class Main {
 						} catch (ArrayIndexOutOfBoundsException eee) {
 
 						}
-					}
+					}*/
 				}
 				pixleNum++;
 			}
