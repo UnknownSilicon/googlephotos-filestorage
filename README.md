@@ -16,3 +16,4 @@ The program takes each byte of the file and encodes it into the r, g, or b chann
 - [ ] Automatic Upload
 - [ ] List available files
 - [ ] Support for larger files (break down into smaller files)
+- [ ] Add Error Correcting
