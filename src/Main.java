@@ -173,6 +173,10 @@ public class Main {
 
 		int numberOfImages = (((closestSquare*closestSquare)-((closestSquare*closestSquare)%MAX_SIZE))/MAX_SIZE)+1;
 
+		if (closestSquare > 4000) {
+			closestSquare = 4000;
+		}
+
 		ImageCreator ic = new ImageCreator(closestSquare, closestSquare);
 
 		BufferedImage[] images = new BufferedImage[numberOfImages];
@@ -230,15 +234,16 @@ public class Main {
 			}
 
 			if (pixelNum >= MAX_SIZE && currentImage < numberOfImages) {
-				currentImage++;
 
 				images[currentImage-1] = ic.getImage();
 
-				closestSquare = (int) Math.ceil(Math.sqrt(Long.divideUnsigned(size-MAX_SIZE, 3L)));
+				closestSquare = (int) Math.ceil(Math.sqrt(Long.divideUnsigned(size-=MAX_SIZE, 3L)));
 
 				ic = new ImageCreator(closestSquare, closestSquare);
 
 				pixelNum = 0;
+
+				currentImage++;
 			}
 
 		}
