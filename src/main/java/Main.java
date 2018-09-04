@@ -14,7 +14,7 @@ import java.util.Scanner;
 
 public class Main {
 
-	private static final int MAX_SIZE = 16000000; // In pixels
+	public static final int MAX_SIZE = 16000000; // In pixels
 
 	public static void main(String[] args) throws IOException, NoSuchAlgorithmException {
 		Scanner scan = new Scanner(System.in);
