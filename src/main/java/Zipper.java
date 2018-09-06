@@ -27,9 +27,11 @@ public class Zipper {
 		return outputDir;
 	}
 
-	public void unzip(String sourceDir) throws ZipException {
-		ZipFile file = new ZipFile(sourceDir);
+	public void unzip(String source) throws ZipException {
+		ZipFile file = new ZipFile(source);
 
-		file.extractAll(System.getProperty("user.dir"));
+		String outputDir = System.getProperty("user.dir");
+
+		file.extractAll(outputDir);
 	}
 }

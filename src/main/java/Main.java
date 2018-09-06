@@ -1,18 +1,17 @@
 import net.lingala.zip4j.exception.ZipException;
 import utility.Checksum;
 import utility.FastRGB;
+import utility.StringUtils;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class Main {
@@ -32,21 +31,13 @@ public class Main {
 		if (s.equals("e")) {
 			File file = getFile(scan);
 
-			System.out.println("Output File: ");
-			String fileStr = scan.nextLine();
-
-			encode(file, fileStr);
+			encode(file);
 		} else if (s.equals("d")) {
 
-			File file = getFile(scan);
+			System.out.println("Input File: ");
+			String inStr = scan.nextLine();
 
-			File outputFile = null;
-
-			System.out.println("Output File: ");
-			String fileStr = scan.nextLine();
-			outputFile = new File(fileStr);
-
-			decode(ImageIO.read(file), outputFile);
+			decode(inStr);
 		} else {
 			System.out.println("Something Broke");
 		}
@@ -68,86 +59,131 @@ public class Main {
 		return file;
 	}
 
-	public static void decode(BufferedImage image, File outputFile) throws IOException, NoSuchAlgorithmException {
+	public static void decode(String name) throws IOException, NoSuchAlgorithmException, ZipException {
 		long startTime = System.nanoTime();
-		FastRGB fastRGB = new FastRGB(image);
 
-		int size = image.getHeight() * image.getWidth();
-		byte[] data = new byte[size * 3];
+		File dir = new File("."); // Get this directory
 
-		int dataNum = 0;
+		File[] files = dir.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String n) {
+				String lower = n.toLowerCase();
 
-		for (int y = 0; y < image.getHeight(); y++) {
-			for (int x = 0; x < image.getWidth(); x++) {
-				byte[] pixel = fastRGB.getRGB(x, y);
+				boolean pngEnd = lower.endsWith(".png");
 
-				data[dataNum] = pixel[0];
-				data[dataNum + 1] = pixel[1];
-				data[dataNum + 2] = pixel[2];
+				if (pngEnd) {
+					return lower.split(".png")[0].startsWith(name.toLowerCase());
+				}
 
-				dataNum += 3;
+				return false;
 			}
-		}
+		});
 
-		byte[] checksum;
+		assert files != null;
+		for (File f : files) {
 
-		int firstIndex = 0;
-		int lastIndex = 0;
-
-
-		int currentIndex = data.length - 1;
-		while (lastIndex == 0) {
-			if (data[currentIndex--] != 0) {
-				lastIndex = currentIndex;
-				firstIndex = currentIndex - 19;
+			if (!f.exists()) {
+				break;
 			}
-		}
+
+			File tempOutput = new File(f.getName());
+
+			File tempInput = new File(f.getName()); // For some reason, ImageIO does not like the .\ in front
+
+			//FileInputStream fis = new FileInputStream(f);
+
+			BufferedImage image = ImageIO.read(tempInput);
+
+			FastRGB fastRGB = new FastRGB(image);
+			//fis.close();
+
+			int size = image.getHeight() * image.getWidth();
+			byte[] data = new byte[size * 3];
+
+			int dataNum = 0;
+
+			for (int y = 0; y < image.getHeight(); y++) {
+				for (int x = 0; x < image.getWidth(); x++) {
+					byte[] pixel = fastRGB.getRGB(x, y);
+
+					data[dataNum] = pixel[0];
+					data[dataNum + 1] = pixel[1];
+					data[dataNum + 2] = pixel[2];
+
+					dataNum += 3;
+				}
+			}
+
+			byte[] checksum;
+
+			int firstIndex = 0;
+			int lastIndex = 0;
+
+
+			int currentIndex = data.length - 1;
+			while (lastIndex == 0) {
+				if (data[currentIndex--] != 0) {
+					lastIndex = currentIndex;
+					firstIndex = currentIndex - 19;
+				}
+			}
 
 		/* TODO: Figure out a better way to detect checksum | See below | The current "solution" will work for all files
 			Except for those with a perfect square image and the checksum ends in "255 255 255" or "FF FF FF"
 		*/
-		if ((data[lastIndex - 1] & 0xFF) == 255 && (data[lastIndex] & 0xFF) == 255 && (data[lastIndex + 1] & 0xFF) == 255) {
-			// If the last three bytes are 255, then you are in the right place
-			firstIndex -= 3;
-		} else {
-			lastIndex = data.length;
-			firstIndex = lastIndex - 19;
-		}
-
-		checksum = Arrays.copyOfRange(data, firstIndex + 1, firstIndex + 21);
-
-		byte[] newData = new byte[firstIndex + 1];
-
-		for (int i = 0; i < firstIndex + 1; i++) {
-			newData[i] = data[i];
-		}
-
-		// File should be encoded in data
-
-		FileOutputStream fos = new FileOutputStream(outputFile);
-
-		fos.write(newData);
-		fos.close();
-
-		byte[] newChecksum = Checksum.getFileChecksum(outputFile);
-
-		if (Arrays.equals(checksum, newChecksum)) {
-
-			System.out.println("Checksum Valid");
-
-		} else {
-			System.out.println("Checksum invalid");
-
-			System.out.println("Old Checksum: ");
-			for (byte b : checksum) {
-				System.out.print(b + " ");
+			if ((data[lastIndex - 1] & 0xFF) == 255 && (data[lastIndex] & 0xFF) == 255 && (data[lastIndex + 1] & 0xFF) == 255) {
+				// If the last three bytes are 255, then you are in the right place
+				firstIndex -= 3;
+			} else {
+				lastIndex = data.length;
+				firstIndex = lastIndex - 19;
 			}
 
-			System.out.println("\nNew Checksum");
-			for (byte b : newChecksum) {
-				System.out.print(b + " ");
+			checksum = Arrays.copyOfRange(data, firstIndex + 1, firstIndex + 21);
+
+			byte[] newData = new byte[firstIndex + 1];
+
+			for (int i = 0; i < firstIndex + 1; i++) {
+				newData[i] = data[i];
 			}
-			System.out.println();
+
+			// File should be encoded in data
+
+			FileOutputStream fos = new FileOutputStream(tempOutput);
+
+			fos.write(newData);
+			fos.close();
+
+			byte[] newChecksum = Checksum.getFileChecksum(tempOutput);
+
+			if (Arrays.equals(checksum, newChecksum)) {
+
+				System.out.println("Checksum Valid");
+
+			} else {
+				System.out.println("Checksum invalid");
+
+				System.out.println("Old Checksum: ");
+				for (byte b : checksum) {
+					System.out.print(b + " ");
+				}
+
+				System.out.println("\nNew Checksum");
+				for (byte b : newChecksum) {
+					System.out.print(b + " ");
+				}
+				System.out.println();
+			}
+		}
+
+		Zipper zipper = new Zipper();
+
+		try {
+			zipper.unzip(files[0].getName());
+
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.out.println("File does not exist!");
+			System.exit(1);
 		}
 
 		long endTime = System.nanoTime();
@@ -157,7 +193,7 @@ public class Main {
 		System.out.println("Decoded in: " + deltaTime + " seconds");
 	}
 
-	public static void encode(File file, String outputFile) throws IOException, NoSuchAlgorithmException, ZipException {
+	public static void encode(File file) throws IOException, NoSuchAlgorithmException, ZipException {
 		long startTime = System.nanoTime();
 		if (!file.exists()) {
 			System.out.println("File does not exist!");
@@ -172,7 +208,7 @@ public class Main {
 
 		int imgNum = 0;
 
-		for (File f : directory.listFiles()) {
+		for (File f : Objects.requireNonNull(directory.listFiles())) {
 			if (f.isFile()) {
 
 				FileInputStream fis = new FileInputStream(f);
@@ -286,13 +322,13 @@ public class Main {
 					col = (pixelNum - closestSquare * row);
 
 					if (tempStorage.length == 1) {
-						ic.drawPixel(row, col, new Color(tempStorage[0], 255, 255));
+						ic.drawPixel(row, col, new Color(tempStorage[0] & 0xFF, 255, 255));
 						pixelNum++;
 						row = (pixelNum - (pixelNum % closestSquare)) / closestSquare;
 						col = (pixelNum - closestSquare * row);
 						ic.drawPixel(row, col, new Color(255, 0, 0));
 					} else if (tempStorage.length == 2) {
-						ic.drawPixel(row, col, new Color(tempStorage[0], tempStorage[1], 255));
+						ic.drawPixel(row, col, new Color(tempStorage[0] & 0xFF, tempStorage[1] & 0xFF, 255));
 						pixelNum++;
 						row = (pixelNum - (pixelNum % closestSquare)) / closestSquare;
 						col = (pixelNum - closestSquare * row);
@@ -300,7 +336,9 @@ public class Main {
 					}
 				}
 
-				ImageIO.write(ic.getImage(), "png", new File(outputFile + "-" + imgNum + ".png"));
+
+
+				ImageIO.write(ic.getImage(), "png", new File(f.getName() + ".png"));
 
 				imgNum++;
 			}
