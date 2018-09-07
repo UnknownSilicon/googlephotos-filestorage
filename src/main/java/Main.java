@@ -86,7 +86,7 @@ public class Main {
 				break;
 			}
 
-			File tempOutput = new File(f.getName());
+			File tempOutput = new File(f.getName().substring(0, f.getName().lastIndexOf("." + StringUtils.getFileExtension(f))));
 
 			File tempInput = new File(f.getName()); // For some reason, ImageIO does not like the .\ in front
 
@@ -135,8 +135,8 @@ public class Main {
 				// If the last three bytes are 255, then you are in the right place
 				firstIndex -= 3;
 			} else {
-				lastIndex = data.length;
-				firstIndex = lastIndex - 19;
+				/*lastIndex = data.length;
+				firstIndex = lastIndex - 19;*/
 			}
 
 			checksum = Arrays.copyOfRange(data, firstIndex + 1, firstIndex + 21);
@@ -179,12 +179,32 @@ public class Main {
 		Zipper zipper = new Zipper();
 
 		try {
-			zipper.unzip(files[0].getName());
+			zipper.unzip(files[files.length-1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0]))));
 
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("File does not exist!");
 			System.exit(1);
+		} catch (ZipException e) {
+			System.out.println("Unable to extract");
 		}
+
+		/*File[] delFiles = dir.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				String noPng = files[files.length-1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
+				String noZip = noPng.substring(0, noPng.lastIndexOf("."));
+				String lastThree = name.substring(name.length()-3);
+
+				if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
+					return true;
+				}
+				return false;
+			}
+		});
+
+		for (File f : delFiles) {
+			f.delete();
+		}*/
 
 		long endTime = System.nanoTime();
 
