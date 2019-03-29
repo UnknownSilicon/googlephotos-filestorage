@@ -128,8 +128,7 @@ public class Main {
 				}
 			}
 
-		/* TODO: Figure out a better way to detect checksum | See below | The current "solution" will work for all files
-			Except for those with a perfect square image and the checksum ends in "255 255 255" or "FF FF FF"
+		/* TODO: Figure out a better way to detect checksum | See below | The current "solution" will work for all files except for those with a perfect square image and the checksum ends in "255 255 255" or "FF FF FF"
 		*/
 			if ((data[lastIndex - 1] & 0xFF) == 255 && (data[lastIndex] & 0xFF) == 255 && (data[lastIndex + 1] & 0xFF) == 255) {
 				// If the last three bytes are 255, then you are in the right place
@@ -215,7 +214,7 @@ public class Main {
 
 	public static void encode(File file) throws IOException, NoSuchAlgorithmException, ZipException {
 		long startTime = System.nanoTime();
-		if (!file.exists()) {
+		if (file == null || !file.exists()) {
 			System.out.println("File does not exist!");
 			System.exit(1);
 		}
@@ -224,7 +223,6 @@ public class Main {
 
 		String zipDir = zipper.zip(file);
 		File directory = new File(zipDir);
-
 
 		int imgNum = 0;
 
