@@ -1,4 +1,6 @@
+import com.google.photos.library.v1.proto.NewMediaItem;
 import net.lingala.zip4j.exception.ZipException;
+import photosAPI.Photos;
 import utility.Checksum;
 import utility.FastRGB;
 import utility.StringUtils;
@@ -187,7 +189,7 @@ public class Main {
 			System.out.println("Unable to extract");
 		}
 
-		/*File[] delFiles = dir.listFiles(new FilenameFilter() {
+		File[] delFiles = dir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
 				String noPng = files[files.length-1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
@@ -203,7 +205,7 @@ public class Main {
 
 		for (File f : delFiles) {
 			f.delete();
-		}*/
+		}
 
 		long endTime = System.nanoTime();
 
@@ -220,6 +222,8 @@ public class Main {
 		}
 
 		Zipper zipper = new Zipper();
+
+		Photos photos = new Photos();
 
 		String zipDir = zipper.zip(file);
 		File directory = new File(zipDir);
@@ -355,8 +359,14 @@ public class Main {
 				}
 
 
+				File outputFile = new File(f.getName() + ".png");
+				ImageIO.write(ic.getImage(), "png", outputFile);
 
-				ImageIO.write(ic.getImage(), "png", new File(f.getName() + ".png"));
+				NewMediaItem item = photos.uploadImage(outputFile);
+
+				System.out.println();
+
+				photos.processUploads(Arrays.asList(item));
 
 				imgNum++;
 			}
