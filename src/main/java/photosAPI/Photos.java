@@ -9,9 +9,7 @@ import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
-import com.google.api.gax.core.CredentialsProvider;
 import com.google.api.gax.core.FixedCredentialsProvider;
-import com.google.api.gax.core.GoogleCredentialsProvider;
 import com.google.auth.oauth2.*;
 import com.google.photos.library.v1.PhotosLibraryClient;
 import com.google.photos.library.v1.PhotosLibrarySettings;
@@ -28,7 +26,6 @@ import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInsta
 
 import java.io.*;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -45,22 +42,6 @@ public class Photos {
 	private static final File DATA_STORE_DIR = new File(System.getProperty("user.home"), ".store/gpfs");
 
 	public Photos() throws IOException {
-		//InputStream in = Photos.class.getResourceAsStream("/GPFS-c29aa6fb95a3.json");
-		InputStream in = Photos.class.getResourceAsStream("/client_id.json");
-
-		/*OkHttpClient httpClient = new OkHttpClient();
-
-		Request request = new Request.Builder()
-				.url("https://accounts.google.com/o/oauth2/v2/auth?client_id="+CLIENT_ID+"&response_type=code&scope="+REQUEST_SCOPE+"&redirect_uri=http://localhost&access_type=offline")
-				.build();
-
-		try (Response response = httpClient.newCall(request).execute()) {
-			System.out.println();
-		}*/
-
-		//GoogleCredentials credentials = GoogleCredentials.fromStream(in).createScoped(PhotosLibrarySettings.getDefaultServiceScopes());
-		//GoogleCredentials credentials = ServiceAccountCredentials.fromStream(in).createScoped(PhotosLibrarySettings.getDefaultServiceScopes());
-
 		Credential authCred = authorize();
 
 		authCred.refreshToken();
@@ -73,7 +54,6 @@ public class Photos {
 
 		PhotosLibrarySettings settings = PhotosLibrarySettings.newBuilder()
 				.setCredentialsProvider(FixedCredentialsProvider.create(credentials))
-				//.setCredentialsProvider(GoogleCredentialsProvider.newBuilder().setScopesToApply(PhotosLibrarySettings.getDefaultServiceScopes()).build())
 				.build();
 
 		photosLibraryClient = PhotosLibraryClient.initialize(settings);
