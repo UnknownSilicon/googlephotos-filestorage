@@ -13,6 +13,7 @@ import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.*;
 import com.google.photos.library.v1.PhotosLibraryClient;
 import com.google.photos.library.v1.PhotosLibrarySettings;
+import com.google.photos.library.v1.internal.InternalPhotosLibraryClient;
 import com.google.photos.library.v1.proto.*;
 import com.google.photos.library.v1.upload.UploadMediaItemRequest;
 import com.google.photos.library.v1.upload.UploadMediaItemResponse;
@@ -22,6 +23,7 @@ import com.google.rpc.Status;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 
 import java.io.*;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -72,6 +74,21 @@ public class Photos {
 
 	public Album getAlbum(String name) {
 		return photosLibraryClient.createAlbum(name);
+	}
+
+	public ArrayList<String> getFileNames() {
+		InternalPhotosLibraryClient.ListAlbumsPagedResponse response = photosLibraryClient.listAlbums();
+
+		ArrayList<String> fileNames = new ArrayList<>();
+
+		for (Album album : response.iterateAll()) {
+			String title = album.getTitle();
+			String id = album.getId();
+			String fullName = title + "#" + id;
+			fileNames.add(fullName);
+		}
+
+		return fileNames;
 	}
 
 	public NewMediaItem uploadImage(File f) {
