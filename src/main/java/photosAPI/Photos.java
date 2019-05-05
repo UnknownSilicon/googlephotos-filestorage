@@ -13,10 +13,7 @@ import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.*;
 import com.google.photos.library.v1.PhotosLibraryClient;
 import com.google.photos.library.v1.PhotosLibrarySettings;
-import com.google.photos.library.v1.proto.BatchCreateMediaItemsResponse;
-import com.google.photos.library.v1.proto.MediaItem;
-import com.google.photos.library.v1.proto.NewMediaItem;
-import com.google.photos.library.v1.proto.NewMediaItemResult;
+import com.google.photos.library.v1.proto.*;
 import com.google.photos.library.v1.upload.UploadMediaItemRequest;
 import com.google.photos.library.v1.upload.UploadMediaItemResponse;
 import com.google.photos.library.v1.util.NewMediaItemFactory;
@@ -33,9 +30,9 @@ public class Photos {
 
 	private PhotosLibraryClient photosLibraryClient;
 
-	private static final String CLIENT_ID = "YOUR_CLIENT_ID";
+	private static final String CLIENT_ID = "***REMOVED***";
 
-	private static final String CLIENT_SECRET = "YOUR_CLIENT_SECRET";
+	private static final String CLIENT_SECRET = "***REMOVED***";
 
 	private static final String REQUEST_SCOPE = "https://www.googleapis.com/auth/photoslibrary";
 
@@ -45,7 +42,6 @@ public class Photos {
 		Credential authCred = authorize();
 
 		authCred.refreshToken();
-
 
 		Date expireTime = new Date();
 		expireTime.setTime(expireTime.getTime()+authCred.getExpirationTimeMilliseconds());
@@ -74,11 +70,10 @@ public class Photos {
 		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 	}
 
-	/**
-	 *
-	 * @param f The image to upload
-	 * @return The media item
-	 */
+	public Album getAlbum(String name) {
+		return photosLibraryClient.createAlbum(name);
+	}
+
 	public NewMediaItem uploadImage(File f) {
 		UploadMediaItemRequest uploadRequest = null;
 		try {
@@ -106,11 +101,18 @@ public class Photos {
 		return null;
 	}
 
-	public void processUploads(List<NewMediaItem> newItems) {
+	public void processUploads(List<NewMediaItem> newItems, Album album) {
 		if (newItems.size() <= 0) {
 			return;
 		}
-		BatchCreateMediaItemsResponse response = photosLibraryClient.batchCreateMediaItems(newItems);
+
+		BatchCreateMediaItemsResponse response;
+		if (album != null) {
+			response = photosLibraryClient.batchCreateMediaItems(album.getId(), newItems);
+		} else {
+			response = photosLibraryClient.batchCreateMediaItems(newItems);
+		}
+
 
 		for (NewMediaItemResult itemResponse : response.getNewMediaItemResultsList()) {
 			Status status = itemResponse.getStatus();
@@ -118,9 +120,13 @@ public class Photos {
 				MediaItem createdItem = itemResponse.getMediaItem();
 
 				System.out.println("Successfully processed: " + createdItem.getFilename());
+
 			} else {
 				System.out.println("Error!");
 			}
 		}
+	}
+	public void processUploads(List<NewMediaItem> newItems) {
+		processUploads(newItems, null);
 	}
 }

@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'jakebacker'
-version '1.0-SNAPSHOT'
+version '2.0'
 
 sourceCompatibility = 1.8
 
@@ -30,7 +30,7 @@ jar {
     manifest {
         attributes (
             'Class-Path': configurations.compile.collect { it.getName()}.join(' '),
-            'Manifest-Version': 1.0,
+            'Manifest-Version': 2.0,
             'Main-Class': 'Main'
         )
     }
@@ -40,7 +40,7 @@ task fatJar(type: Jar) {
     manifest {
         attributes (
                 'Class-Path': configurations.compile.collect { it.getName()}.join(' '),
-                'Manifest-Version': 1.0,
+                'Manifest-Version': 2.0,
                 'Main-Class': 'Main'
         )
     }
