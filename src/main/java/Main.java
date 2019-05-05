@@ -1,3 +1,4 @@
+import com.google.photos.library.v1.proto.Album;
 import com.google.photos.library.v1.proto.NewMediaItem;
 import net.lingala.zip4j.exception.ZipException;
 import photosAPI.Photos;
@@ -12,6 +13,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
@@ -230,6 +232,10 @@ public class Main {
 
 		int imgNum = 0;
 
+		ArrayList<NewMediaItem> mediaItems = new ArrayList<>();
+
+		Album album = photos.getAlbum(file.getName());
+
 		for (File f : Objects.requireNonNull(directory.listFiles())) {
 			if (f.isFile()) {
 
@@ -364,13 +370,18 @@ public class Main {
 
 				NewMediaItem item = photos.uploadImage(outputFile);
 
-				System.out.println();
+				mediaItems.add(item);
 
-				photos.processUploads(Arrays.asList(item));
+				System.out.println();
 
 				imgNum++;
 			}
+
 		}
+
+		photos.processUploads(mediaItems, album);
+
+		System.out.println();
 
 		long endTime = System.nanoTime();
 
