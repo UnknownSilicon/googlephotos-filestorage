@@ -23,3 +23,12 @@
 hs_err_pid*
 
 src/main/resources/*
+
+secrets.txt
+
+.gradle/
+.idea/
+*.png
+gradle/
+*.bin
+build/
