@@ -1,3 +1,4 @@
+import com.google.photos.library.v1.proto.Album;
 import com.google.photos.library.v1.proto.NewMediaItem;
 import net.lingala.zip4j.exception.ZipException;
 import photosAPI.Photos;
@@ -12,6 +13,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Scanner;
@@ -20,28 +22,43 @@ public class Main {
 
 	public static final int MAX_SIZE = 16000000; // In pixels
 
+	static Photos photos;
+
 	public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ZipException {
 		Scanner scan = new Scanner(System.in);
 
+		photos = new Photos();
+
 		String s = "";
 
-		while (!s.equals("e") && !s.equals("d")) {
-			System.out.println("Encode (e) or Decode (d)?");
+		while (!s.equals("e") && !s.equals("d") && !s.equals("l")) {
+			System.out.println("Encode (e), Decode (d), or List (l)?");
 			s = scan.nextLine();
 		}
 
-		if (s.equals("e")) {
-			File file = getFile(scan);
+		switch (s) {
+			case "e":
+				File file = getFile(scan);
 
-			encode(file);
-		} else if (s.equals("d")) {
+				encode(file);
+				break;
+			case "d":
 
-			System.out.println("Input File: ");
-			String inStr = scan.nextLine();
+				System.out.println("Input File: ");
+				String inStr = scan.nextLine();
 
-			decode(inStr);
-		} else {
-			System.out.println("Something Broke");
+				decode(inStr);
+				break;
+			case "l":
+				ArrayList<String> fileNames = photos.getFileNames();
+
+				for (String name : fileNames) {
+					System.out.println(name);
+				}
+				break;
+			default:
+				System.out.println("Something Broke");
+				break;
 		}
 
 	}
@@ -223,12 +240,14 @@ public class Main {
 
 		Zipper zipper = new Zipper();
 
-		Photos photos = new Photos();
-
 		String zipDir = zipper.zip(file);
 		File directory = new File(zipDir);
 
 		int imgNum = 0;
+
+		ArrayList<NewMediaItem> mediaItems = new ArrayList<>();
+
+		Album album = photos.getAlbum(file.getName());
 
 		for (File f : Objects.requireNonNull(directory.listFiles())) {
 			if (f.isFile()) {
@@ -364,13 +383,18 @@ public class Main {
 
 				NewMediaItem item = photos.uploadImage(outputFile);
 
-				System.out.println();
+				mediaItems.add(item);
 
-				photos.processUploads(Arrays.asList(item));
+				System.out.println();
 
 				imgNum++;
 			}
+
 		}
+
+		photos.processUploads(mediaItems, album);
+
+		System.out.println();
 
 		long endTime = System.nanoTime();
 
