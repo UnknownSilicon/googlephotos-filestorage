@@ -29,36 +29,60 @@ public class Main {
 
 		photos = new Photos();
 
-		String s = "";
 
-		while (!s.equals("e") && !s.equals("d") && !s.equals("l")) {
-			System.out.println("Encode (e), Decode (d), or List (l)?");
-			s = scan.nextLine();
-		}
+		boolean isRunning = true;
 
-		switch (s) {
-			case "e":
-				File file = getFile(scan);
+		while (isRunning) {
+			String s = "";
 
-				encode(file);
-				break;
-			case "d":
+			while (!s.equals("e") && !s.equals("d") && !s.equals("dl") && !s.equals("l") && !s.equals("q")) {
+				System.out.println("Encode (e), Decode (d), Download (dl), List (l), or Quit (q)?");
+				s = scan.nextLine();
+			}
 
-				System.out.println("Input File: ");
-				String inStr = scan.nextLine();
+			switch (s) {
+				case "e":
+					File file = getFile(scan);
 
-				decode(inStr);
-				break;
-			case "l":
-				ArrayList<String> fileNames = photos.getFileNames();
+					encode(file);
+					break;
+				case "d":
 
-				for (String name : fileNames) {
-					System.out.println(name);
-				}
-				break;
-			default:
-				System.out.println("Something Broke");
-				break;
+					System.out.println("Input File: ");
+					String inStr = scan.nextLine();
+
+					decode(inStr);
+					break;
+				case "dl":
+					System.out.println("Input File: ");
+
+					String dlFile = scan.nextLine();
+
+					Album album = photos.getExistingAlbum(dlFile);
+
+					if (album == null) {
+						System.out.println("File does not exist!");
+					} else {
+						photos.downloadFiles(album);
+
+						System.out.println("Successfully Downloaded Files!");
+					}
+
+					break;
+				case "l":
+					ArrayList<String> fileNames = photos.getFileNames();
+
+					for (String name : fileNames) {
+						System.out.println(name);
+					}
+					break;
+				case "q":
+					isRunning = false;
+					break;
+				default:
+					System.out.println("Something Broke");
+					break;
+			}
 		}
 
 	}
