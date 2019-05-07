@@ -237,9 +237,15 @@ public class Main {
 				String noZip = noPng.substring(0, noPng.lastIndexOf("."));
 				String lastThree = name.substring(name.length()-3);
 
-				if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
+				/*if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
 					return true;
 				}
+				return false;*/
+
+				if (name.contains(noZip) && !name.equals(noZip) && (lastThree.equals("png") || lastThree.startsWith("z"))) {
+					return true;
+				}
+
 				return false;
 			}
 		});

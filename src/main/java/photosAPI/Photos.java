@@ -22,8 +22,10 @@ import com.google.protobuf.CodedOutputStream;
 import com.google.rpc.Code;
 import com.google.rpc.Status;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
+import org.apache.commons.io.FileUtils;
 
 import java.io.*;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -150,8 +152,12 @@ public class Photos {
 
 				File outputFile = new File(mediaItem.getFilename());
 				files.add(outputFile);
-				FileOutputStream fos = new FileOutputStream(outputFile);
-				mediaItem.writeTo(CodedOutputStream.newInstance(fos));
+
+				String baseUrl = mediaItem.getBaseUrl();
+
+				String fullDl = baseUrl + "=d";
+
+				FileUtils.copyURLToFile(new URL(fullDl), outputFile);
 			}
 		}
 
