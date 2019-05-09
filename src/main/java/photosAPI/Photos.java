@@ -133,7 +133,7 @@ public class Photos {
 		return null;
 	}
 
-	public ArrayList<File> downloadFiles(Album album) throws IOException {
+	public void downloadFiles(Album album) throws IOException {
 		String albumId = album.getId();
 
 		InternalPhotosLibraryClient.SearchMediaItemsPagedResponse response = photosLibraryClient.searchMediaItems(albumId);
@@ -145,23 +145,25 @@ public class Photos {
 
 		BatchGetMediaItemsResponse mediaItemsResponse = photosLibraryClient.batchGetMediaItems(mediaItemIds);
 
-		ArrayList<File> files = new ArrayList<>();
+		//ArrayList<File> files = new ArrayList<>();
 		for (MediaItemResult result : mediaItemsResponse.getMediaItemResultsList()) {
 			if (result.hasMediaItem()) {
 				MediaItem mediaItem = result.getMediaItem();
 
 				File outputFile = new File(mediaItem.getFilename());
-				files.add(outputFile);
+				//files.add(outputFile);
 
 				String baseUrl = mediaItem.getBaseUrl();
 
 				String fullDl = baseUrl + "=d";
 
 				FileUtils.copyURLToFile(new URL(fullDl), outputFile);
+
+				outputFile = null;
 			}
 		}
 
-		return files;
+		//return files;
 	}
 
 	public void processUploads(List<NewMediaItem> newItems, Album album) {

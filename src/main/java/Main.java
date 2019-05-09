@@ -13,10 +13,7 @@ import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
@@ -24,65 +21,69 @@ public class Main {
 
 	static Photos photos;
 
-	public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ZipException {
-		Scanner scan = new Scanner(System.in);
+	public static void main(String[] args) {
+		try {
+			Scanner scan = new Scanner(System.in);
 
-		photos = new Photos();
+			photos = new Photos();
 
 
-		boolean isRunning = true;
+			boolean isRunning = true;
 
-		while (isRunning) {
-			String s = "";
+			while (isRunning) {
+				String s = "";
 
-			while (!s.equals("e") && !s.equals("d") && !s.equals("dl") && !s.equals("l") && !s.equals("q")) {
-				System.out.println("Encode (e), Decode (d), Download (dl), List (l), or Quit (q)?");
-				s = scan.nextLine();
+				while (!s.equals("e") && !s.equals("d") && !s.equals("dl") && !s.equals("l") && !s.equals("q")) {
+					System.out.println("Encode (e), Decode (d), Download (dl), List (l), or Quit (q)?");
+					s = scan.nextLine();
+				}
+
+				switch (s) {
+					case "e":
+						File file = getFile(scan);
+
+						encode(file);
+						break;
+					case "d":
+
+						System.out.println("Input File: ");
+						String inStr = scan.nextLine();
+
+						decode(inStr);
+						break;
+					case "dl":
+						System.out.println("Input File: ");
+
+						String dlFile = scan.nextLine();
+
+						Album album = photos.getExistingAlbum(dlFile);
+
+						if (album == null) {
+							System.out.println("File does not exist!");
+						} else {
+							photos.downloadFiles(album);
+
+							System.out.println("Successfully Downloaded Files!");
+						}
+
+						break;
+					case "l":
+						ArrayList<String> fileNames = photos.getFileNames();
+
+						for (String name : fileNames) {
+							System.out.println(name);
+						}
+						break;
+					case "q":
+						isRunning = false;
+						break;
+					default:
+						System.out.println("Something Broke");
+						break;
+				}
 			}
-
-			switch (s) {
-				case "e":
-					File file = getFile(scan);
-
-					encode(file);
-					break;
-				case "d":
-
-					System.out.println("Input File: ");
-					String inStr = scan.nextLine();
-
-					decode(inStr);
-					break;
-				case "dl":
-					System.out.println("Input File: ");
-
-					String dlFile = scan.nextLine();
-
-					Album album = photos.getExistingAlbum(dlFile);
-
-					if (album == null) {
-						System.out.println("File does not exist!");
-					} else {
-						photos.downloadFiles(album);
-
-						System.out.println("Successfully Downloaded Files!");
-					}
-
-					break;
-				case "l":
-					ArrayList<String> fileNames = photos.getFileNames();
-
-					for (String name : fileNames) {
-						System.out.println(name);
-					}
-					break;
-				case "q":
-					isRunning = false;
-					break;
-				default:
-					System.out.println("Something Broke");
-					break;
-			}
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 
 	}
@@ -102,7 +103,7 @@ public class Main {
 		return file;
 	}
 
-	public static void decode(String name) throws IOException, NoSuchAlgorithmException, ZipException {
+	public static void decode(String name) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException {
 		long startTime = System.nanoTime();
 
 		File dir = new File("."); // Get this directory
@@ -250,8 +251,22 @@ public class Main {
 			}
 		});
 
+		System.gc();
 		for (File f : delFiles) {
-			f.delete();
+
+			if (f.exists()) {
+				boolean result = f.delete();
+				System.out.println(result);
+
+				int counter = 0;
+				while(!result && counter < 20) { // Only do this max 20 times
+					Thread.sleep(100);
+					System.gc();
+					result = f.delete();
+					counter++;
+					System.out.println(result);
+				}
+			}
 		}
 
 		long endTime = System.nanoTime();
@@ -406,6 +421,8 @@ public class Main {
 						ic.drawPixel(row, col, new Color(255, 255, 0));
 					}
 				}
+
+				fis.close();
 
 
 				File outputFile = new File(f.getName() + ".png");
