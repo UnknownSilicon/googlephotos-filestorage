@@ -10,8 +10,6 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
@@ -33,39 +31,24 @@ public class Main {
 			while (isRunning) {
 				String s = "";
 
-				while (!s.equals("e") && !s.equals("d") && !s.equals("dl") && !s.equals("l") && !s.equals("q")) {
-					System.out.println("Encode (e), Decode (d), Download (dl), List (l), or Quit (q)?");
+				while (!s.equals("u") && !s.equals("d") && !s.equals("l") && !s.equals("q")) {
+					System.out.println("Upload (u), Download (d), List (l), or Quit (q)?");
 					s = scan.nextLine();
 				}
 
 				switch (s) {
-					case "e":
+					case "u":
 						File file = getFile(scan);
 
-						encode(file);
+						upload(file);
 						break;
 					case "d":
 
 						System.out.println("Input File: ");
-						String inStr = scan.nextLine();
-
-						decode(inStr);
-						break;
-					case "dl":
-						System.out.println("Input File: ");
 
 						String dlFile = scan.nextLine();
 
-						Album album = photos.getExistingAlbum(dlFile);
-
-						if (album == null) {
-							System.out.println("File does not exist!");
-						} else {
-							photos.downloadFiles(album);
-
-							System.out.println("Successfully Downloaded Files!");
-						}
-
+						download(dlFile);
 						break;
 					case "l":
 						ArrayList<String> fileNames = photos.getFileNames();
@@ -103,8 +86,19 @@ public class Main {
 		return file;
 	}
 
-	public static void decode(String name) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException {
+	public static void download(String name) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException {
 		long startTime = System.nanoTime();
+
+		Album album = photos.getExistingAlbum(name);
+
+		if (album == null) {
+			System.out.println("File does not exist!");
+		} else {
+			photos.downloadFiles(album);
+
+			System.out.println("Successfully Downloaded Files!");
+		}
+
 
 		File dir = new File("."); // Get this directory
 
@@ -172,8 +166,8 @@ public class Main {
 				}
 			}
 
-		/* TODO: Figure out a better way to detect checksum | See below | The current "solution" will work for all files except for those with a perfect square image and the checksum ends in "255 255 255" or "FF FF FF"
-		*/
+			/* TODO: Figure out a better way to detect checksum | See below | The current "solution" will work for all files except for those with a perfect square image and the checksum ends in "255 255 255" or "FF FF FF"
+			 */
 			if ((data[lastIndex - 1] & 0xFF) == 255 && (data[lastIndex] & 0xFF) == 255 && (data[lastIndex + 1] & 0xFF) == 255) {
 				// If the last three bytes are 255, then you are in the right place
 				firstIndex -= 3;
@@ -222,7 +216,7 @@ public class Main {
 		Zipper zipper = new Zipper();
 
 		try {
-			zipper.unzip(files[files.length-1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0]))));
+			zipper.unzip(files[files.length - 1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0]))));
 
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("File does not exist!");
@@ -234,9 +228,9 @@ public class Main {
 		File[] delFiles = dir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				String noPng = files[files.length-1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
+				String noPng = files[files.length - 1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
 				String noZip = noPng.substring(0, noPng.lastIndexOf("."));
-				String lastThree = name.substring(name.length()-3);
+				String lastThree = name.substring(name.length() - 3);
 
 				/*if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
 					return true;
@@ -252,21 +246,10 @@ public class Main {
 		});
 
 		System.gc();
+		assert delFiles != null;
 		for (File f : delFiles) {
 
-			if (f.exists()) {
-				boolean result = f.delete();
-				System.out.println(result);
-
-				int counter = 0;
-				while(!result && counter < 20) { // Only do this max 20 times
-					Thread.sleep(100);
-					System.gc();
-					result = f.delete();
-					counter++;
-					System.out.println(result);
-				}
-			}
+			forceDelete(f);
 		}
 
 		long endTime = System.nanoTime();
@@ -276,7 +259,7 @@ public class Main {
 		System.out.println("Decoded in: " + deltaTime + " seconds");
 	}
 
-	public static void encode(File file) throws IOException, NoSuchAlgorithmException, ZipException {
+	public static void upload(File file) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException {
 		long startTime = System.nanoTime();
 		if (file == null || !file.exists()) {
 			System.out.println("File does not exist!");
@@ -441,6 +424,24 @@ public class Main {
 
 		photos.processUploads(mediaItems, album);
 
+		// Remove files
+
+		File dir = new File(System.getProperty("user.dir")); // This is cheaty
+
+		File[] delFiles = dir.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".png") && name.startsWith(file.getName());
+			}
+		});
+
+		System.gc();
+		assert delFiles != null;
+		for (File f : delFiles) {
+
+			forceDelete(f);
+		}
+
 		System.out.println();
 
 		long endTime = System.nanoTime();
@@ -448,6 +449,25 @@ public class Main {
 		double deltaTime = (double) (endTime - startTime) / 1000000000.0;
 
 		System.out.println("Encoded in: " + deltaTime + " seconds");
+
+
 	}
 
+	public static void forceDelete(File f) throws InterruptedException {
+		if (f.exists()) {
+			boolean result = f.delete();
+
+			int counter = 0;
+			while (!result && counter < 20) { // Only do this max 20 times
+				Thread.sleep(100);
+				System.gc();
+				result = f.delete();
+				counter++;
+			}
+
+			if (counter >= 20) {
+				System.out.println("Failed to delete: " + f.getName());
+			}
+		}
+	}
 }
