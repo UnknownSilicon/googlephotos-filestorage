@@ -190,6 +190,7 @@ public class Main {
 
 			fos.write(newData);
 			fos.close();
+			System.gc();
 
 			byte[] newChecksum = Checksum.getFileChecksum(tempOutput);
 
@@ -277,7 +278,9 @@ public class Main {
 
 		Album album = photos.getAlbum(file.getName());
 
-		for (File f : Objects.requireNonNull(directory.listFiles())) {
+		File[] files = Objects.requireNonNull(directory.listFiles());
+
+		for (File f : files) {
 			if (f.isFile()) {
 
 				FileInputStream fis = new FileInputStream(f);
@@ -407,9 +410,10 @@ public class Main {
 
 				fis.close();
 
-
 				File outputFile = new File(f.getName() + ".png");
 				ImageIO.write(ic.getImage(), "png", outputFile);
+
+				System.gc();
 
 				NewMediaItem item = photos.uploadImage(outputFile);
 
@@ -466,7 +470,9 @@ public class Main {
 			}
 
 			if (counter >= 20) {
-				System.out.println("Failed to delete: " + f.getName());
+				System.out.println("Failed to delete: " + f.getName() + "#" + f.hashCode());
+				System.out.println("Attempting to delete on exit");
+				f.deleteOnExit();
 			}
 		}
 	}

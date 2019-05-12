@@ -27,7 +27,7 @@ public class Zipper {
 
 		file.createZipFile(source, new ZipParameters(), true, maxBytes);
 
-		file = null;
+		System.gc();
 
 		return outputDir;
 	}
@@ -38,6 +38,8 @@ public class Zipper {
 		String outputDir = System.getProperty("user.dir");
 
 		file.extractAll(outputDir);
+
+		System.gc();
 
 	}
 }
