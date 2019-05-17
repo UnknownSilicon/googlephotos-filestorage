@@ -1,16 +1,17 @@
 package photosAPI;
 
-import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
-import com.google.api.client.auth.oauth2.BearerToken;
-import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
-import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.*;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.GenericUrl;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.*;
+import com.google.common.collect.Lists;
 import com.google.photos.library.v1.PhotosLibraryClient;
 import com.google.photos.library.v1.PhotosLibrarySettings;
 import com.google.photos.library.v1.internal.InternalPhotosLibraryClient;
@@ -26,6 +27,7 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.*;
 import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -35,15 +37,13 @@ public class Photos {
 
 	private PhotosLibraryClient photosLibraryClient;
 
-	private static final String CLIENT_ID = "***REMOVED***";
-
-	private static final String CLIENT_SECRET = "***REMOVED***";
+	private static final String CREDENIALS_FILE_PATH = "/***REMOVED***.json";
 
 	private static final String REQUEST_SCOPE = "https://www.googleapis.com/auth/photoslibrary";
 
 	private static final File DATA_STORE_DIR = new File(System.getProperty("user.home"), ".store/gpfs");
 
-	public Photos() throws IOException {
+	public Photos() throws IOException, GeneralSecurityException {
 		Credential authCred = authorize();
 
 		authCred.refreshToken();
@@ -60,15 +60,16 @@ public class Photos {
 		photosLibraryClient = PhotosLibraryClient.initialize(settings);
 	}
 
-	private static Credential authorize() throws IOException {
-		AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(BearerToken.authorizationHeaderAccessMethod(),
-				new NetHttpTransport(),
-				JacksonFactory.getDefaultInstance(),
-				new GenericUrl("https://oauth2.googleapis.com/token"),
-				new ClientParametersAuthentication(CLIENT_ID, CLIENT_SECRET),
-				CLIENT_ID,
-				"https://accounts.google.com/o/oauth2/auth").setScopes(Arrays.asList(REQUEST_SCOPE))
-				.setDataStoreFactory(new FileDataStoreFactory(DATA_STORE_DIR)).build();
+	private static Credential authorize() throws IOException, GeneralSecurityException {
+		InputStream in = Photos.class.getResourceAsStream(CREDENIALS_FILE_PATH);
+		GoogleClientSecrets secrets = GoogleClientSecrets.load(JacksonFactory.getDefaultInstance(), new InputStreamReader(in));
+
+		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+				GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance(), secrets, Arrays.asList(REQUEST_SCOPE))
+				.setDataStoreFactory(new FileDataStoreFactory(DATA_STORE_DIR))
+				.setAccessType("offline")
+				.build();
+
 
 		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setHost("localhost").setPort(80).build();
 
