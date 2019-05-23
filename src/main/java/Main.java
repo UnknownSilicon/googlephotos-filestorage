@@ -1,5 +1,5 @@
-import com.google.photos.library.v1.proto.Album;
 import com.google.photos.library.v1.proto.NewMediaItem;
+import com.google.photos.types.proto.Album;
 import net.lingala.zip4j.exception.ZipException;
 import photosAPI.Photos;
 import utility.Checksum;
@@ -31,8 +31,8 @@ public class Main {
 			while (isRunning) {
 				String s = "";
 
-				while (!s.equals("u") && !s.equals("d") && !s.equals("l") && !s.equals("q")) {
-					System.out.println("Upload (u), Download (d), List (l), or Quit (q)?");
+				while (!s.equals("u") && !s.equals("d") && !s.equals("l") && !s.equals("r") && !s.equals("q")) {
+					System.out.println("Upload (u), Download (d), List (l), Remove (r), or Quit (q)?");
 					s = scan.nextLine();
 				}
 
@@ -57,6 +57,14 @@ public class Main {
 							System.out.println(name);
 						}
 						break;
+					case "r":
+						System.out.println("Input File: ");
+
+						String removeFile = scan.nextLine();
+
+						Album album = photos.getExistingAlbum(removeFile);
+
+						photos.deleteAlbum(album.getId());
 					case "q":
 						isRunning = false;
 						break;
