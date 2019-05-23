@@ -16,6 +16,8 @@ import com.google.photos.library.v1.proto.*;
 import com.google.photos.library.v1.upload.UploadMediaItemRequest;
 import com.google.photos.library.v1.upload.UploadMediaItemResponse;
 import com.google.photos.library.v1.util.NewMediaItemFactory;
+import com.google.photos.types.proto.Album;
+import com.google.photos.types.proto.MediaItem;
 import com.google.rpc.Code;
 import com.google.rpc.Status;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
@@ -86,8 +88,8 @@ public class Photos {
 			String id = album.getId();
 			String fullName = title + "#" + id;
 			fileNames.add(fullName);
-		}
 
+		}
 
 		return fileNames;
 	}
@@ -130,15 +132,30 @@ public class Photos {
 		return null;
 	}
 
-	public void downloadFiles(Album album) throws IOException {
-		String albumId = album.getId();
+	public void deleteAlbum(String albumId) {
 
+		ArrayList<String> mediaItemIds = getMediaItemsFromAlbum(albumId);
+
+
+		BatchRemoveMediaItemsFromAlbumResponse removeResponse = photosLibraryClient.batchRemoveMediaItemsFromAlbum(albumId, mediaItemIds);
+
+	}
+
+	public ArrayList<String> getMediaItemsFromAlbum(String albumId) {
 		InternalPhotosLibraryClient.SearchMediaItemsPagedResponse response = photosLibraryClient.searchMediaItems(albumId);
 
 		ArrayList<String> mediaItemIds = new ArrayList<>();
 		for (MediaItem item : response.iterateAll()) {
 			mediaItemIds.add(item.getId());
 		}
+
+		return mediaItemIds;
+	}
+
+	public void downloadFiles(Album album) throws IOException {
+		String albumId = album.getId();
+
+		ArrayList<String> mediaItemIds = getMediaItemsFromAlbum(albumId);
 
 		BatchGetMediaItemsResponse mediaItemsResponse = photosLibraryClient.batchGetMediaItems(mediaItemIds);
 
