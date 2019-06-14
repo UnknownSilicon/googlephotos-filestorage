@@ -1,12 +1,10 @@
 package photosAPI;
 
-import com.google.api.client.auth.oauth2.AuthorizationCodeFlow;
-import com.google.api.client.auth.oauth2.BearerToken;
-import com.google.api.client.auth.oauth2.ClientParametersAuthentication;
-import com.google.api.client.auth.oauth2.Credential;
+import com.google.api.client.auth.oauth2.*;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.gax.core.FixedCredentialsProvider;
@@ -18,11 +16,17 @@ import com.google.photos.library.v1.proto.*;
 import com.google.photos.library.v1.upload.UploadMediaItemRequest;
 import com.google.photos.library.v1.upload.UploadMediaItemResponse;
 import com.google.photos.library.v1.util.NewMediaItemFactory;
+import com.google.photos.types.proto.Album;
+import com.google.photos.types.proto.MediaItem;
 import com.google.rpc.Code;
 import com.google.rpc.Status;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
 
+import org.apache.commons.io.FileUtils;
+
 import java.io.*;
+import java.net.URL;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -32,15 +36,14 @@ public class Photos {
 
 	private PhotosLibraryClient photosLibraryClient;
 
-	private static final String CLIENT_ID = "***REMOVED***";
-
-	private static final String CLIENT_SECRET = "***REMOVED***";
+	private static final String CREDENIALS_FILE_PATH = "/credentials.json";
 
 	private static final String REQUEST_SCOPE = "https://www.googleapis.com/auth/photoslibrary";
 
 	private static final File DATA_STORE_DIR = new File(System.getProperty("user.home"), ".store/gpfs");
 
-	public Photos() throws IOException {
+	public Photos() throws IOException, GeneralSecurityException {
+
 		Credential authCred = authorize();
 
 		authCred.refreshToken();
@@ -57,15 +60,15 @@ public class Photos {
 		photosLibraryClient = PhotosLibraryClient.initialize(settings);
 	}
 
-	private static Credential authorize() throws IOException {
-		AuthorizationCodeFlow flow = new AuthorizationCodeFlow.Builder(BearerToken.authorizationHeaderAccessMethod(),
-				new NetHttpTransport(),
-				JacksonFactory.getDefaultInstance(),
-				new GenericUrl("https://oauth2.googleapis.com/token"),
-				new ClientParametersAuthentication(CLIENT_ID, CLIENT_SECRET),
-				CLIENT_ID,
-				"https://accounts.google.com/o/oauth2/auth").setScopes(Arrays.asList(REQUEST_SCOPE))
-				.setDataStoreFactory(new FileDataStoreFactory(DATA_STORE_DIR)).build();
+	private static Credential authorize() throws IOException, GeneralSecurityException {
+		InputStream in = Photos.class.getResourceAsStream(CREDENIALS_FILE_PATH);
+		GoogleClientSecrets secrets = GoogleClientSecrets.load(JacksonFactory.getDefaultInstance(), new InputStreamReader(in));
+
+		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
+				GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance(), secrets, Arrays.asList(REQUEST_SCOPE))
+				.setDataStoreFactory(new FileDataStoreFactory(DATA_STORE_DIR))
+				.setAccessType("offline")
+				.build();
 
 		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setHost("localhost").setPort(80).build();
 
@@ -82,10 +85,14 @@ public class Photos {
 		ArrayList<String> fileNames = new ArrayList<>();
 
 		for (Album album : response.iterateAll()) {
-			String title = album.getTitle();
-			String id = album.getId();
-			String fullName = title + "#" + id;
-			fileNames.add(fullName);
+
+			if(album.getMediaItemsCount() != 0) {
+
+				String title = album.getTitle();
+				String id = album.getId();
+				String fullName = title + "#" + id;
+				fileNames.add(fullName);
+			}
 		}
 
 		return fileNames;
@@ -118,6 +125,83 @@ public class Photos {
 		return null;
 	}
 
+	public Album getExistingAlbum(String fileName) throws DuplicateNameException{
+		InternalPhotosLibraryClient.ListAlbumsPagedResponse response = photosLibraryClient.listAlbums();
+
+		Album foundAlbum = null;
+
+		for (Album album : response.iterateAll()) {
+			if (album.getTitle().equals(fileName)) {
+				if (foundAlbum != null) {
+					System.out.println("There is more than one file with that name! Please use id");
+					throw new DuplicateNameException();
+				}
+				foundAlbum = album;
+			}
+		}
+		return foundAlbum;
+	}
+
+	public Album getExistingAlbumFromId(String id) {
+		InternalPhotosLibraryClient.ListAlbumsPagedResponse response = photosLibraryClient.listAlbums();
+
+		for (Album album : response.iterateAll()) {
+			if (album.getId().equals(id)) {
+				return album;
+			}
+		}
+		return null;
+	}
+
+	public void deleteAlbum(Album album) {
+
+		String albumId = album.getId();
+
+		ArrayList<String> mediaItemIds = getMediaItemsFromAlbum(albumId);
+
+
+		BatchRemoveMediaItemsFromAlbumResponse removeResponse = photosLibraryClient.batchRemoveMediaItemsFromAlbum(albumId, mediaItemIds);
+	}
+
+	public ArrayList<String> getMediaItemsFromAlbum(String albumId) {
+		InternalPhotosLibraryClient.SearchMediaItemsPagedResponse response = photosLibraryClient.searchMediaItems(albumId);
+
+		ArrayList<String> mediaItemIds = new ArrayList<>();
+		for (MediaItem item : response.iterateAll()) {
+			mediaItemIds.add(item.getId());
+		}
+
+		return mediaItemIds;
+	}
+
+	public void downloadFiles(Album album) throws IOException {
+		String albumId = album.getId();
+
+		ArrayList<String> mediaItemIds = getMediaItemsFromAlbum(albumId);
+
+		BatchGetMediaItemsResponse mediaItemsResponse = photosLibraryClient.batchGetMediaItems(mediaItemIds);
+
+		//ArrayList<File> files = new ArrayList<>();
+		for (MediaItemResult result : mediaItemsResponse.getMediaItemResultsList()) {
+			if (result.hasMediaItem()) {
+				MediaItem mediaItem = result.getMediaItem();
+
+				File outputFile = new File(mediaItem.getFilename());
+				//files.add(outputFile);
+
+				String baseUrl = mediaItem.getBaseUrl();
+
+				String fullDl = baseUrl + "=d";
+
+				FileUtils.copyURLToFile(new URL(fullDl), outputFile);
+
+				outputFile = null;
+			}
+		}
+
+		//return files;
+	}
+
 	public void processUploads(List<NewMediaItem> newItems, Album album) {
 		if (newItems.size() <= 0) {
 			return;
@@ -147,3 +231,4 @@ public class Photos {
 		processUploads(newItems, null);
 	}
 }
+

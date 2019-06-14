@@ -1,6 +1,8 @@
-import com.google.photos.library.v1.proto.Album;
+
 import com.google.photos.library.v1.proto.NewMediaItem;
+import com.google.photos.types.proto.Album;
 import net.lingala.zip4j.exception.ZipException;
+import photosAPI.DuplicateNameException;
 import photosAPI.Photos;
 import utility.Checksum;
 import utility.FastRGB;
@@ -10,13 +12,9 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
 
@@ -24,43 +22,79 @@ public class Main {
 
 	static Photos photos;
 
-	public static void main(String[] args) throws IOException, NoSuchAlgorithmException, ZipException {
-		Scanner scan = new Scanner(System.in);
+	public static void main(String[] args) {
+		try {
+			Scanner scan = new Scanner(System.in);
 
-		photos = new Photos();
+			photos = new Photos();
 
-		String s = "";
 
-		while (!s.equals("e") && !s.equals("d") && !s.equals("l")) {
-			System.out.println("Encode (e), Decode (d), or List (l)?");
-			s = scan.nextLine();
-		}
+			boolean isRunning = true;
 
-		switch (s) {
-			case "e":
-				File file = getFile(scan);
+			while (isRunning) {
+				String s = "";
 
-				encode(file);
-				break;
-			case "d":
-
-				System.out.println("Input File: ");
-				String inStr = scan.nextLine();
-
-				decode(inStr);
-				break;
-			case "l":
-				ArrayList<String> fileNames = photos.getFileNames();
-
-				for (String name : fileNames) {
-					System.out.println(name);
+				while (!s.equals("u") && !s.equals("d") && !s.equals("l") && !s.equals("r") && !s.equals("q")) {
+					System.out.println("Upload (u), Download (d), List (l), Remove (r), or Quit (q)?");
+					s = scan.nextLine();
 				}
-				break;
-			default:
-				System.out.println("Something Broke");
-				break;
-		}
 
+				switch (s) {
+					case "u":
+						File file = getFile(scan);
+
+						upload(file);
+						break;
+					case "d":
+
+						System.out.println("Input File Or ID (including #): ");
+
+						String dlFile = scan.nextLine();
+
+						try {
+							download(dlFile);
+						} catch (DuplicateNameException e) {
+							System.out.println("There is another album with that name! Try again using the ID instead");
+							break;
+						}
+						break;
+					case "l":
+						ArrayList<String> fileNames = photos.getFileNames();
+
+						for (String name : fileNames) {
+							System.out.println(name);
+						}
+						break;
+					case "r":
+						System.out.println("Input File Or ID (including #): ");
+
+						String removeFile = scan.nextLine();
+
+						Album album;
+						if (removeFile.startsWith("#")) {
+							album = photos.getExistingAlbumFromId(removeFile.substring(1)); // Remove the #
+						} else {
+							try {
+								album = photos.getExistingAlbum(removeFile);
+							} catch (DuplicateNameException e) {
+								System.out.println("There is another album with that name! Try again using the ID instead");
+								break;
+							}
+						}
+
+						photos.deleteAlbum(album);
+						break;
+					case "q":
+						isRunning = false;
+						break;
+					default:
+						System.out.println("Something Broke");
+						break;
+				}
+			}
+		} catch (IOException | ZipException | InterruptedException | GeneralSecurityException e) {
+			e.printStackTrace();
+		}
 	}
 
 	private static File getFile(Scanner scan) {
@@ -78,8 +112,24 @@ public class Main {
 		return file;
 	}
 
-	public static void decode(String name) throws IOException, NoSuchAlgorithmException, ZipException {
+	public static void download(String name) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException, DuplicateNameException {
 		long startTime = System.nanoTime();
+
+		Album album;
+		if (name.startsWith("#")) {
+			album = photos.getExistingAlbumFromId(name.substring(1));
+		} else {
+			album = photos.getExistingAlbum(name);
+		}
+
+		if (album == null) {
+			System.out.println("File does not exist!");
+		} else {
+			photos.downloadFiles(album);
+
+			System.out.println("Successfully Downloaded Files!");
+		}
+
 
 		File dir = new File("."); // Get this directory
 
@@ -147,8 +197,8 @@ public class Main {
 				}
 			}
 
-		/* TODO: Figure out a better way to detect checksum | See below | The current "solution" will work for all files except for those with a perfect square image and the checksum ends in "255 255 255" or "FF FF FF"
-		*/
+			/* TODO: Figure out a better way to detect checksum | See below | The current "solution" will work for all files except for those with a perfect square image and the checksum ends in "255 255 255" or "FF FF FF"
+			 */
 			if ((data[lastIndex - 1] & 0xFF) == 255 && (data[lastIndex] & 0xFF) == 255 && (data[lastIndex + 1] & 0xFF) == 255) {
 				// If the last three bytes are 255, then you are in the right place
 				firstIndex -= 3;
@@ -171,6 +221,7 @@ public class Main {
 
 			fos.write(newData);
 			fos.close();
+			System.gc();
 
 			byte[] newChecksum = Checksum.getFileChecksum(tempOutput);
 
@@ -197,7 +248,7 @@ public class Main {
 		Zipper zipper = new Zipper();
 
 		try {
-			zipper.unzip(files[files.length-1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0]))));
+			zipper.unzip(files[files.length - 1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0]))));
 
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("File does not exist!");
@@ -209,19 +260,28 @@ public class Main {
 		File[] delFiles = dir.listFiles(new FilenameFilter() {
 			@Override
 			public boolean accept(File dir, String name) {
-				String noPng = files[files.length-1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
+				String noPng = files[files.length - 1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
 				String noZip = noPng.substring(0, noPng.lastIndexOf("."));
-				String lastThree = name.substring(name.length()-3);
+				String lastThree = name.substring(name.length() - 3);
 
-				if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
+				/*if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
 					return true;
 				}
+				return false;*/
+
+				if (name.contains(noZip) && !name.equals(noZip) && (lastThree.equals("png") || lastThree.startsWith("z"))) {
+					return true;
+				}
+
 				return false;
 			}
 		});
 
+		System.gc();
+		assert delFiles != null;
 		for (File f : delFiles) {
-			f.delete();
+
+			forceDelete(f);
 		}
 
 		long endTime = System.nanoTime();
@@ -231,7 +291,7 @@ public class Main {
 		System.out.println("Decoded in: " + deltaTime + " seconds");
 	}
 
-	public static void encode(File file) throws IOException, NoSuchAlgorithmException, ZipException {
+	public static void upload(File file) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException {
 		long startTime = System.nanoTime();
 		if (file == null || !file.exists()) {
 			System.out.println("File does not exist!");
@@ -249,7 +309,9 @@ public class Main {
 
 		Album album = photos.getAlbum(file.getName());
 
-		for (File f : Objects.requireNonNull(directory.listFiles())) {
+		File[] files = Objects.requireNonNull(directory.listFiles());
+
+		for (File f : files) {
 			if (f.isFile()) {
 
 				FileInputStream fis = new FileInputStream(f);
@@ -377,9 +439,12 @@ public class Main {
 					}
 				}
 
+				fis.close();
 
 				File outputFile = new File(f.getName() + ".png");
 				ImageIO.write(ic.getImage(), "png", outputFile);
+
+				System.gc();
 
 				NewMediaItem item = photos.uploadImage(outputFile);
 
@@ -394,6 +459,24 @@ public class Main {
 
 		photos.processUploads(mediaItems, album);
 
+		// Remove files
+
+		File dir = new File(System.getProperty("user.dir")); // This is cheaty
+
+		File[] delFiles = dir.listFiles(new FilenameFilter() {
+			@Override
+			public boolean accept(File dir, String name) {
+				return name.endsWith(".png") && name.startsWith(file.getName());
+			}
+		});
+
+		System.gc();
+		assert delFiles != null;
+		for (File f : delFiles) {
+
+			forceDelete(f);
+		}
+
 		System.out.println();
 
 		long endTime = System.nanoTime();
@@ -401,6 +484,27 @@ public class Main {
 		double deltaTime = (double) (endTime - startTime) / 1000000000.0;
 
 		System.out.println("Encoded in: " + deltaTime + " seconds");
+
+
 	}
 
+	public static void forceDelete(File f) throws InterruptedException {
+		if (f.exists()) {
+			boolean result = f.delete();
+
+			int counter = 0;
+			while (!result && counter < 20) { // Only do this max 20 times
+				Thread.sleep(100);
+				System.gc();
+				result = f.delete();
+				counter++;
+			}
+
+			if (counter >= 20) {
+				System.out.println("Failed to delete: " + f.getName() + "#" + f.hashCode());
+				System.out.println("Attempting to delete on exit");
+				f.deleteOnExit();
+			}
+		}
+	}
 }

@@ -21,7 +21,7 @@ Follow the prompts in the terminal.
 - [ ] Implement the alpha channel to allow for increased data density
 - [x] Add checksum verification
 - [x] Automatic Upload
-- [ ] List available files
-- [ ] Automatic Retrieval
+- [x] List available files
+- [x] Automatic Retrieval
 - [x] Support for larger files (break down into smaller files)
 - [ ] Add Error Correcting
