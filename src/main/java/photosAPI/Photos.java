@@ -21,6 +21,7 @@ import com.google.photos.types.proto.MediaItem;
 import com.google.rpc.Code;
 import com.google.rpc.Status;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
+
 import org.apache.commons.io.FileUtils;
 
 import java.io.*;
@@ -42,6 +43,7 @@ public class Photos {
 	private static final File DATA_STORE_DIR = new File(System.getProperty("user.home"), ".store/gpfs");
 
 	public Photos() throws IOException, GeneralSecurityException {
+
 		Credential authCred = authorize();
 
 		authCred.refreshToken();
@@ -68,7 +70,6 @@ public class Photos {
 				.setAccessType("offline")
 				.build();
 
-
 		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setHost("localhost").setPort(80).build();
 
 		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
@@ -84,6 +85,7 @@ public class Photos {
 		ArrayList<String> fileNames = new ArrayList<>();
 
 		for (Album album : response.iterateAll()) {
+
 			if(album.getMediaItemsCount() != 0) {
 
 				String title = album.getTitle();
@@ -91,7 +93,6 @@ public class Photos {
 				String fullName = title + "#" + id;
 				fileNames.add(fullName);
 			}
-
 		}
 
 		return fileNames;
