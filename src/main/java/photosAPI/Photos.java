@@ -84,10 +84,13 @@ public class Photos {
 		ArrayList<String> fileNames = new ArrayList<>();
 
 		for (Album album : response.iterateAll()) {
-			String title = album.getTitle();
-			String id = album.getId();
-			String fullName = title + "#" + id;
-			fileNames.add(fullName);
+			if(album.getMediaItemsCount() != 0) {
+
+				String title = album.getTitle();
+				String id = album.getId();
+				String fullName = title + "#" + id;
+				fileNames.add(fullName);
+			}
 
 		}
 
@@ -121,24 +124,42 @@ public class Photos {
 		return null;
 	}
 
-	public Album getExistingAlbum(String fileName) {
+	public Album getExistingAlbum(String fileName) throws DuplicateNameException{
 		InternalPhotosLibraryClient.ListAlbumsPagedResponse response = photosLibraryClient.listAlbums();
+
+		Album foundAlbum = null;
 
 		for (Album album : response.iterateAll()) {
 			if (album.getTitle().equals(fileName)) {
+				if (foundAlbum != null) {
+					System.out.println("There is more than one file with that name! Please use id");
+					throw new DuplicateNameException();
+				}
+				foundAlbum = album;
+			}
+		}
+		return foundAlbum;
+	}
+
+	public Album getExistingAlbumFromId(String id) {
+		InternalPhotosLibraryClient.ListAlbumsPagedResponse response = photosLibraryClient.listAlbums();
+
+		for (Album album : response.iterateAll()) {
+			if (album.getId().equals(id)) {
 				return album;
 			}
 		}
 		return null;
 	}
 
-	public void deleteAlbum(String albumId) {
+	public void deleteAlbum(Album album) {
+
+		String albumId = album.getId();
 
 		ArrayList<String> mediaItemIds = getMediaItemsFromAlbum(albumId);
 
 
 		BatchRemoveMediaItemsFromAlbumResponse removeResponse = photosLibraryClient.batchRemoveMediaItemsFromAlbum(albumId, mediaItemIds);
-
 	}
 
 	public ArrayList<String> getMediaItemsFromAlbum(String albumId) {
@@ -209,3 +230,4 @@ public class Photos {
 		processUploads(newItems, null);
 	}
 }
+
