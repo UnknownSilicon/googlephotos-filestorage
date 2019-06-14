@@ -1,4 +1,4 @@
-import com.google.photos.library.v1.proto.Album;
+
 import com.google.photos.library.v1.proto.NewMediaItem;
 import com.google.photos.types.proto.Album;
 import net.lingala.zip4j.exception.ZipException;
