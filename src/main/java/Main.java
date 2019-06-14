@@ -1,6 +1,7 @@
 import com.google.photos.library.v1.proto.NewMediaItem;
 import com.google.photos.types.proto.Album;
 import net.lingala.zip4j.exception.ZipException;
+import photosAPI.DuplicateNameException;
 import photosAPI.Photos;
 import utility.Checksum;
 import utility.FastRGB;
@@ -10,6 +11,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
@@ -44,11 +46,16 @@ public class Main {
 						break;
 					case "d":
 
-						System.out.println("Input File: ");
+						System.out.println("Input File Or ID (including #): ");
 
 						String dlFile = scan.nextLine();
 
-						download(dlFile);
+						try {
+							download(dlFile);
+						} catch (DuplicateNameException e) {
+							System.out.println("There is another album with that name! Try again using the ID instead");
+							break;
+						}
 						break;
 					case "l":
 						ArrayList<String> fileNames = photos.getFileNames();
@@ -58,13 +65,24 @@ public class Main {
 						}
 						break;
 					case "r":
-						System.out.println("Input File: ");
+						System.out.println("Input File Or ID (including #): ");
 
 						String removeFile = scan.nextLine();
 
-						Album album = photos.getExistingAlbum(removeFile);
+						Album album;
+						if (removeFile.startsWith("#")) {
+							album = photos.getExistingAlbumFromId(removeFile.substring(1)); // Remove the #
+						} else {
+							try {
+								album = photos.getExistingAlbum(removeFile);
+							} catch (DuplicateNameException e) {
+								System.out.println("There is another album with that name! Try again using the ID instead");
+								break;
+							}
+						}
 
-						photos.deleteAlbum(album.getId());
+						photos.deleteAlbum(album);
+						break;
 					case "q":
 						isRunning = false;
 						break;
@@ -73,10 +91,9 @@ public class Main {
 						break;
 				}
 			}
-		} catch (Exception e) {
+		} catch (IOException | ZipException | InterruptedException | GeneralSecurityException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	private static File getFile(Scanner scan) {
@@ -94,10 +111,15 @@ public class Main {
 		return file;
 	}
 
-	public static void download(String name) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException {
+	public static void download(String name) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException, DuplicateNameException {
 		long startTime = System.nanoTime();
 
-		Album album = photos.getExistingAlbum(name);
+		Album album;
+		if (name.startsWith("#")) {
+			album = photos.getExistingAlbumFromId(name.substring(1));
+		} else {
+			album = photos.getExistingAlbum(name);
+		}
 
 		if (album == null) {
 			System.out.println("File does not exist!");
