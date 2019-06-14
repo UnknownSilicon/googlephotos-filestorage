@@ -26,6 +26,7 @@ src/main/resources/*
 
 secrets.txt
 
+out/
 .gradle/
 .idea/
 *.png
