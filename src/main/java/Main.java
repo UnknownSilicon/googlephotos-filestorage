@@ -133,19 +133,16 @@ public class Main {
 
 		File dir = new File("."); // Get this directory
 
-		File[] files = dir.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String n) {
-				String lower = n.toLowerCase();
+		File[] files = dir.listFiles((dir1, n) -> {
+			String lower = n.toLowerCase();
 
-				boolean pngEnd = lower.endsWith(".png");
+			boolean pngEnd = lower.endsWith(".png");
 
-				if (pngEnd) {
-					return lower.split(".png")[0].startsWith(name.toLowerCase());
-				}
-
-				return false;
+			if (pngEnd) {
+				return lower.split(".png")[0].startsWith(name.toLowerCase());
 			}
+
+			return false;
 		});
 
 		assert files != null;
@@ -257,24 +254,21 @@ public class Main {
 			System.out.println("Unable to extract");
 		}
 
-		File[] delFiles = dir.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				String noPng = files[files.length - 1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
-				String noZip = noPng.substring(0, noPng.lastIndexOf("."));
-				String lastThree = name.substring(name.length() - 3);
+		File[] delFiles = dir.listFiles((dir12, name1) -> {
+			String noPng = files[files.length - 1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
+			String noZip = noPng.substring(0, noPng.lastIndexOf("."));
+			String lastThree = name1.substring(name1.length() - 3);
 
-				/*if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
-					return true;
-				}
-				return false;*/
-
-				if (name.contains(noZip) && !name.equals(noZip) && (lastThree.equals("png") || lastThree.startsWith("z"))) {
-					return true;
-				}
-
-				return false;
+			/*if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
+				return true;
 			}
+			return false;*/
+
+			if (name1.contains(noZip) && !name1.equals(noZip) && (lastThree.equals("png") || lastThree.startsWith("z"))) {
+				return true;
+			}
+
+			return false;
 		});
 
 		System.gc();
@@ -463,12 +457,7 @@ public class Main {
 
 		File dir = new File(System.getProperty("user.dir")); // This is cheaty
 
-		File[] delFiles = dir.listFiles(new FilenameFilter() {
-			@Override
-			public boolean accept(File dir, String name) {
-				return name.endsWith(".png") && name.startsWith(file.getName());
-			}
-		});
+		File[] delFiles = dir.listFiles((dir1, name) -> name.endsWith(".png") && name.startsWith(file.getName()));
 
 		System.gc();
 		assert delFiles != null;
