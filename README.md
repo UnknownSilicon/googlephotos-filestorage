@@ -15,14 +15,3 @@ Run the jar file using some sort of terminal with:
 ``` java -jar googlephotos-filestorage-all-VERSION.jar```
 
 Follow the prompts in the terminal.
-
-## Plans
-
-- [ ] Implement the alpha channel to allow for increased data density
-- [x] Add checksum verification
-- [x] Automatic Upload
-- [x] List available files
-- [x] Automatic Retrieval
-- [x] Support for larger files (break down into smaller files)
-- [ ] Add Error Correcting
-- [ ] Add support for folders
