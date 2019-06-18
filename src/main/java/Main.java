@@ -36,7 +36,7 @@ public class Main {
 
 				while (!s.equals("u") && !s.equals("d") && !s.equals("l") && !s.equals("r") && !s.equals("q")) {
 					System.out.println("Upload (u), Download (d), List (l), Remove (r), or Quit (q)?");
-					s = scan.nextLine();
+					s = scan.nextLine().toLowerCase().trim();
 				}
 
 				switch (s) {
@@ -49,7 +49,7 @@ public class Main {
 
 						System.out.println("Input File Or ID (including #): ");
 
-						String dlFile = scan.nextLine();
+						String dlFile = scan.nextLine().trim();
 
 						try {
 							download(dlFile);
@@ -68,7 +68,7 @@ public class Main {
 					case "r":
 						System.out.println("Input File Or ID (including #): ");
 
-						String removeFile = scan.nextLine();
+						String removeFile = scan.nextLine().trim();
 
 						Album album;
 						if (removeFile.startsWith("#")) {
@@ -104,7 +104,7 @@ public class Main {
 
 		while (!isFileValid) {
 			System.out.println("Input file: ");
-			fileStr = scan.nextLine();
+			fileStr = scan.nextLine().trim();
 			file = new File(fileStr);
 
 			isFileValid = file.exists();
