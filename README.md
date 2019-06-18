@@ -25,3 +25,4 @@ Follow the prompts in the terminal.
 - [x] Automatic Retrieval
 - [x] Support for larger files (break down into smaller files)
 - [ ] Add Error Correcting
+- [ ] Add support for folders
