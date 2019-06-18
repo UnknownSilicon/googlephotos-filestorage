@@ -8,6 +8,7 @@ import utility.Checksum;
 import utility.FastRGB;
 import utility.StringUtils;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -39,6 +40,8 @@ public class Main {
 					s = scan.nextLine().toLowerCase().trim();
 				}
 
+				boolean goBack = false;
+
 				switch (s) {
 					case "u":
 						File file = getFile(scan);
@@ -46,13 +49,27 @@ public class Main {
 						upload(file);
 						break;
 					case "d":
+						Album dlAlbum = null;
+						String dlFile = "";
 
-						System.out.println("Input File Or ID (including *): ");
+						while (dlAlbum == null) {
+							System.out.println("Input File Or ID (including *) or type < to exit: ");
 
-						String dlFile = scan.nextLine().trim();
+							dlFile = scan.nextLine().trim();
+							if (dlFile.startsWith("<")) {
+								goBack = true;
+								break;
+							}
+
+							dlAlbum = getAlbumFromInput(dlFile);
+						}
+
+						if (goBack) {
+							break;
+						}
 
 						try {
-							download(dlFile);
+							download(dlFile, dlAlbum);
 						} catch (DuplicateNameException e) {
 							System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with *)");
 							break;
@@ -69,22 +86,17 @@ public class Main {
 						Album album = null;
 
 						while (album == null) {
-							System.out.println("Input File Or ID (including *): ");
+							System.out.println("Input File Or ID (including *) or type < to exit: ");
 
 							String removeFile = scan.nextLine().trim();
-							if (removeFile.startsWith("*")) {
-								album = photos.getExistingAlbumFromId(removeFile.substring(1)); // Remove the *
-							} else {
-								try {
-									album = photos.getExistingAlbum(removeFile);
-								} catch (DuplicateNameException e) {
-									System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with *)");
-									break;
-								}
+							if(removeFile.startsWith("<")) {
+								goBack = true;
+								break;
 							}
-							if (album==null) {
-								System.out.println("Album does not exist! Try again");
-							}
+							album = getAlbumFromInput(removeFile);
+						}
+						if(goBack) {
+							break;
 						}
 
 						photos.deleteAlbum(album);
@@ -102,6 +114,24 @@ public class Main {
 		}
 	}
 
+	private static Album getAlbumFromInput(String input) {
+		Album album = null;
+
+		if (input.startsWith("*")) {
+			album = photos.getExistingAlbumFromId(input.substring(1)); // Remove the *
+		} else {
+			try {
+				album = photos.getExistingAlbum(input);
+			} catch (DuplicateNameException e) {
+				System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with *)");
+			}
+		}
+		if (album==null) {
+			System.out.println("Album does not exist! Try again");
+		}
+		return album;
+	}
+
 	private static File getFile(Scanner scan) {
 		String fileStr;
 		boolean isFileValid = false;
@@ -117,15 +147,8 @@ public class Main {
 		return file;
 	}
 
-	public static void download(String name) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException, DuplicateNameException {
+	public static void download(String name, Album album) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException, DuplicateNameException {
 		long startTime = System.nanoTime();
-
-		Album album;
-		if (name.startsWith("*")) {
-			album = photos.getExistingAlbumFromId(name.substring(1));
-		} else {
-			album = photos.getExistingAlbum(name);
-		}
 
 		if (album == null) {
 			System.out.println("File does not exist!");

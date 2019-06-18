@@ -161,6 +161,8 @@ public class Photos {
 
 
 		BatchRemoveMediaItemsFromAlbumResponse removeResponse = photosLibraryClient.batchRemoveMediaItemsFromAlbum(albumId, mediaItemIds);
+
+		System.out.println("Removing Successful");
 	}
 
 	public ArrayList<String> getMediaItemsFromAlbum(String albumId) {
