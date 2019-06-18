@@ -66,19 +66,24 @@ public class Main {
 						}
 						break;
 					case "r":
-						System.out.println("Input File Or ID (including *): ");
+						Album album = null;
 
-						String removeFile = scan.nextLine().trim();
+						while (album == null) {
+							System.out.println("Input File Or ID (including *): ");
 
-						Album album;
-						if (removeFile.startsWith("*")) {
-							album = photos.getExistingAlbumFromId(removeFile.substring(1)); // Remove the *
-						} else {
-							try {
-								album = photos.getExistingAlbum(removeFile);
-							} catch (DuplicateNameException e) {
-								System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with *)");
-								break;
+							String removeFile = scan.nextLine().trim();
+							if (removeFile.startsWith("*")) {
+								album = photos.getExistingAlbumFromId(removeFile.substring(1)); // Remove the *
+							} else {
+								try {
+									album = photos.getExistingAlbum(removeFile);
+								} catch (DuplicateNameException e) {
+									System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with *)");
+									break;
+								}
+							}
+							if (album==null) {
+								System.out.println("Album does not exist! Try again");
 							}
 						}
 
