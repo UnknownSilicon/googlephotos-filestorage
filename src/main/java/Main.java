@@ -47,14 +47,14 @@ public class Main {
 						break;
 					case "d":
 
-						System.out.println("Input File Or ID (including #): ");
+						System.out.println("Input File Or ID (including *): ");
 
 						String dlFile = scan.nextLine().trim();
 
 						try {
 							download(dlFile);
 						} catch (DuplicateNameException e) {
-							System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with #)");
+							System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with *)");
 							break;
 						}
 						break;
@@ -66,18 +66,18 @@ public class Main {
 						}
 						break;
 					case "r":
-						System.out.println("Input File Or ID (including #): ");
+						System.out.println("Input File Or ID (including *): ");
 
 						String removeFile = scan.nextLine().trim();
 
 						Album album;
-						if (removeFile.startsWith("#")) {
-							album = photos.getExistingAlbumFromId(removeFile.substring(1)); // Remove the #
+						if (removeFile.startsWith("*")) {
+							album = photos.getExistingAlbumFromId(removeFile.substring(1)); // Remove the *
 						} else {
 							try {
 								album = photos.getExistingAlbum(removeFile);
 							} catch (DuplicateNameException e) {
-								System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with #)");
+								System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with *)");
 								break;
 							}
 						}
@@ -116,7 +116,7 @@ public class Main {
 		long startTime = System.nanoTime();
 
 		Album album;
-		if (name.startsWith("#")) {
+		if (name.startsWith("*")) {
 			album = photos.getExistingAlbumFromId(name.substring(1));
 		} else {
 			album = photos.getExistingAlbum(name);
@@ -490,7 +490,7 @@ public class Main {
 			}
 
 			if (counter >= 20) {
-				System.out.println("Failed to delete: " + f.getName() + "#" + f.hashCode());
+				System.out.println("Failed to delete: " + f.getName() + "*" + f.hashCode());
 				System.out.println("Attempting to delete on exit");
 				f.deleteOnExit();
 			}

@@ -90,7 +90,7 @@ public class Photos {
 
 				String title = album.getTitle();
 				String id = album.getId();
-				String fullName = title + "#" + id;
+				String fullName = title + "*" + id;
 				fileNames.add(fullName);
 			}
 		}
