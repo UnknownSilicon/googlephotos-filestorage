@@ -70,7 +70,7 @@ public class Photos {
 				.setAccessType("offline")
 				.build();
 
-		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setHost("localhost").setPort(80).build();
+		LocalServerReceiver receiver = new LocalServerReceiver.Builder().setHost("localhost").setPort(1337).build();
 
 		return new AuthorizationCodeInstalledApp(flow, receiver).authorize("user");
 	}
