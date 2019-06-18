@@ -54,7 +54,7 @@ public class Main {
 						try {
 							download(dlFile);
 						} catch (DuplicateNameException e) {
-							System.out.println("There is another album with that name! Try again using the ID instead");
+							System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with #)");
 							break;
 						}
 						break;
@@ -77,7 +77,7 @@ public class Main {
 							try {
 								album = photos.getExistingAlbum(removeFile);
 							} catch (DuplicateNameException e) {
-								System.out.println("There is another album with that name! Try again using the ID instead");
+								System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with #)");
 								break;
 							}
 						}
