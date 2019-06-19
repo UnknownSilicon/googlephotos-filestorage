@@ -66,7 +66,7 @@ public class Photos {
 
 		GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
 				GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance(), secrets, Arrays.asList(REQUEST_SCOPE))
-				.setDataStoreFactory(new FileDataStoreFactory(DATA_STORE_DIR))
+				.setDataStoreFactory(new PhotosDataStoreFactory(DATA_STORE_DIR))
 				.setAccessType("offline")
 				.build();
 
