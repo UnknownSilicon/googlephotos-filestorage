@@ -28,8 +28,6 @@ secrets.txt
 
 out/
 .gradle/
-.idea/
 *.png
-gradle/
 *.bin
 build/
