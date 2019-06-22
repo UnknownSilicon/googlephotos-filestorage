@@ -62,9 +62,15 @@ public class Main {
 							}
 
 							dlAlbum = getAlbumFromInput(dlFile);
+
+							if (dlAlbum == null) {
+								break;
+							}
+
+							dlFile = dlAlbum.getTitle();
 						}
 
-						if (goBack) {
+						if (goBack || dlAlbum==null) {
 							break;
 						}
 
@@ -277,6 +283,7 @@ public class Main {
 
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("File does not exist!");
+			e.printStackTrace();
 			System.exit(1);
 		} catch (ZipException e) {
 			System.out.println("Unable to extract");
@@ -518,7 +525,7 @@ public class Main {
 			}
 
 			if (counter >= 20) {
-				System.out.println("Failed to delete: " + f.getName() + "*" + f.hashCode());
+				System.out.println("Failed to delete: " + f.getName() + "#" + f.hashCode());
 				System.out.println("Attempting to delete on exit");
 				f.deleteOnExit();
 			}
