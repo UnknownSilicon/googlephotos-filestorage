@@ -1,13 +1,16 @@
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
+import net.lingala.zip4j.io.ZipOutputStream;
 import net.lingala.zip4j.model.FileHeader;
 import net.lingala.zip4j.model.ZipParameters;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Zipper {
@@ -25,7 +28,13 @@ public class Zipper {
 
 		long maxBytes = Main.MAX_SIZE*3-20;
 
-		file.createZipFile(source, new ZipParameters(), true, maxBytes);
+		if (source.isDirectory()) {
+			file.createZipFileFromFolder(source, new ZipParameters(), true, maxBytes);
+		} else {
+			file.createZipFile(source, new ZipParameters(), true, maxBytes);
+		}
+
+
 
 		System.gc();
 
