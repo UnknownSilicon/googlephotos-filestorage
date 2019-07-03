@@ -171,6 +171,7 @@ public class Photos {
 		ArrayList<String> mediaItemIds = new ArrayList<>();
 		for (MediaItem item : response.iterateAll()) {
 			mediaItemIds.add(item.getId());
+
 		}
 
 		return mediaItemIds;

@@ -7,6 +7,7 @@ import photosAPI.Photos;
 import utility.Checksum;
 import utility.FastRGB;
 import utility.StringUtils;
+import utility.UpdateHandler;
 
 import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
@@ -23,7 +24,12 @@ public class Main {
 
 	static Photos photos;
 
+	private static UpdateHandler updateHandler;
+
 	public static void main(String[] args) {
+		updateHandler = new UpdateHandler();
+		updateHandler.checkVersion();
+
 		try {
 			Scanner scan = new Scanner(System.in);
 
@@ -119,6 +125,7 @@ public class Main {
 			e.printStackTrace();
 		}
 	}
+
 
 	private static Album getAlbumFromInput(String input) {
 		Album album = null;
