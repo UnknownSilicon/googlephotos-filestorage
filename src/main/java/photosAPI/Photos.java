@@ -131,7 +131,7 @@ public class Photos {
 		Album foundAlbum = null;
 
 		for (Album album : response.iterateAll()) {
-			if (album.getTitle().equals(fileName)) {
+			if (album.getTitle().equals(fileName) && album.getMediaItemsCount() !=0) {
 				if (foundAlbum != null) {
 					System.out.println("There is more than one file with that name! Please use id");
 					throw new DuplicateNameException();
