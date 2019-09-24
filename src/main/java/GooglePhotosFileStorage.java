@@ -9,7 +9,6 @@ import utility.FastRGB;
 import utility.StringUtils;
 import utility.UpdateHandler;
 
-import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -18,126 +17,36 @@ import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-public class Main {
+public class GooglePhotosFileStorage {
 
-	public static final int MAX_SIZE = 16000000; // In pixels
+	static final int MAX_SIZE = 16000000; // In pixels
 
-	static Photos photos;
+	private static Photos photos;
 
-	private static UpdateHandler updateHandler;
+	public static void main(String[] args) throws ZipException, NoSuchAlgorithmException, DuplicateNameException, InterruptedException, IOException {
+		GooglePhotosFileStorage gpfs = new GooglePhotosFileStorage();
 
-	public static void main(String[] args) {
-		updateHandler = new UpdateHandler();
+		gpfs.download("*ABFDObjDhu5KcIK2Obg0dzIY78gXMSaRIU_V64QtV1EmJAOLZwQ5PFYQOcMAzbKqSgYVZhUhJj3L");
+	}
+
+	public GooglePhotosFileStorage() {
+		UpdateHandler updateHandler = new UpdateHandler();
 		updateHandler.checkVersion();
 
 		try {
-			Scanner scan = new Scanner(System.in);
-
 			photos = new Photos();
-
-
-			boolean isRunning = true;
-
-			while (isRunning) {
-				String s = "";
-
-				while (!s.equals("u") && !s.equals("d") && !s.equals("l") && !s.equals("r") && !s.equals("q")) {
-					System.out.println("Upload (u), Download (d), List (l), Remove (r), or Quit (q)?");
-					s = scan.nextLine().toLowerCase().trim();
-				}
-
-				boolean goBack = false;
-
-				switch (s) {
-					case "u":
-						File file = getFile(scan);
-
-						upload(file);
-						break;
-					case "d":
-						Album dlAlbum = null;
-						String dlFile = "";
-
-						while (dlAlbum == null) {
-							System.out.println("Input File Or ID (including *) or type < to exit: ");
-
-							dlFile = scan.nextLine().trim();
-							if (dlFile.startsWith("<")) {
-								goBack = true;
-								break;
-							}
-
-							dlAlbum = getAlbumFromInput(dlFile);
-
-							if (dlAlbum == null) {
-								break;
-							}
-
-							dlFile = dlAlbum.getTitle();
-						}
-
-						if (goBack || dlAlbum==null) {
-							break;
-						}
-
-						try {
-							download(dlFile, dlAlbum);
-						} catch (DuplicateNameException e) {
-							System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with *)");
-							break;
-						}
-						break;
-					case "l":
-						ArrayList<String> fileNames = photos.getFileNames();
-
-						for (String name : fileNames) {
-							System.out.println(name);
-						}
-						break;
-					case "r":
-						Album album = null;
-
-						while (album == null) {
-							System.out.println("Input File Or ID (including *) or type < to exit: ");
-
-							String removeFile = scan.nextLine().trim();
-							if(removeFile.startsWith("<")) {
-								goBack = true;
-								break;
-							}
-							album = getAlbumFromInput(removeFile);
-						}
-						if(goBack) {
-							break;
-						}
-
-						photos.deleteAlbum(album);
-						break;
-					case "q":
-						isRunning = false;
-						break;
-					default:
-						System.out.println("Something Broke");
-						break;
-				}
-			}
-		} catch (IOException | ZipException | InterruptedException | GeneralSecurityException e) {
+		} catch (IOException | GeneralSecurityException e) {
 			e.printStackTrace();
 		}
 	}
 
-
-	private static Album getAlbumFromInput(String input) {
+	private static Album getAlbumFromInput(String input) throws DuplicateNameException{
 		Album album = null;
 
 		if (input.startsWith("*")) {
 			album = photos.getExistingAlbumFromId(input.substring(1)); // Remove the *
 		} else {
-			try {
-				album = photos.getExistingAlbum(input);
-			} catch (DuplicateNameException e) {
-				System.out.println("There is another album with that name! Please use the unique Google Photos ID (starts with *)");
-			}
+			album = photos.getExistingAlbum(input);
 		}
 		if (album==null) {
 			System.out.println("Album does not exist! Try again");
@@ -145,34 +54,31 @@ public class Main {
 		return album;
 	}
 
-	private static File getFile(Scanner scan) {
-		String fileStr;
-		boolean isFileValid = false;
-		File file = null;
+	/**
+	 * Downloads a file from google photos
+	 * @param name The file name or id including *
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws ZipException
+	 * @throws InterruptedException
+	 * @throws DuplicateNameException
+	 */
+	public void download(String name) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException, DuplicateNameException {
+		Album album = getAlbumFromInput(name);
 
-		while (!isFileValid) {
-			System.out.println("Input file: ");
-			fileStr = scan.nextLine().trim();
-			file = new File(fileStr);
-
-			isFileValid = file.exists();
-		}
-		return file;
-	}
-
-	public static void download(String name, Album album) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException, DuplicateNameException {
 		long startTime = System.nanoTime();
+
+		File dir;
 
 		if (album == null) {
 			System.out.println("File does not exist!");
+			return;
 		} else {
-			photos.downloadFiles(album);
+			dir = photos.downloadFiles(album);
 
 			System.out.println("Successfully Downloaded Files!");
 		}
 
-
-		File dir = new File("."); // Get this directory
 
 		File[] files = dir.listFiles((dir1, n) -> {
 			String lower = n.toLowerCase();
@@ -180,7 +86,7 @@ public class Main {
 			boolean pngEnd = lower.endsWith(".png");
 
 			if (pngEnd) {
-				return lower.split(".png")[0].startsWith(name.toLowerCase());
+				return true;
 			}
 
 			return false;
@@ -193,13 +99,11 @@ public class Main {
 				break;
 			}
 
-			File tempOutput = new File(f.getName().substring(0, f.getName().lastIndexOf("." + StringUtils.getFileExtension(f))));
-
-			File tempInput = new File(f.getName()); // For some reason, ImageIO does not like the .\ in front
+			File tempOutput = new File(dir + File.separator + f.getName().substring(0, f.getName().lastIndexOf("." + StringUtils.getFileExtension(f))));
 
 			//FileInputStream fis = new FileInputStream(f);
 
-			BufferedImage image = ImageIO.read(tempInput);
+			BufferedImage image = ImageIO.read(f);
 
 			FastRGB fastRGB = new FastRGB(image);
 			//fis.close();
@@ -286,7 +190,8 @@ public class Main {
 		Zipper zipper = new Zipper();
 
 		try {
-			zipper.unzip(files[files.length - 1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0]))));
+			File sourceFile = new File(files[files.length - 1].getAbsolutePath().substring(0, files[0].getAbsolutePath().lastIndexOf("." + StringUtils.getFileExtension(files[0]))));
+			zipper.unzip(sourceFile);
 
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("File does not exist!");
@@ -296,7 +201,9 @@ public class Main {
 			System.out.println("Unable to extract");
 		}
 
-		File[] delFiles = dir.listFiles((dir12, name1) -> {
+		File cwd = new File(System.getProperty("user.dir"));
+
+		File[] delFiles = cwd.listFiles((dir12, name1) -> {
 			String noPng = files[files.length - 1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
 			String noZip = noPng.substring(0, noPng.lastIndexOf("."));
 			String lastThree = name1.substring(name1.length() - 3);
@@ -306,11 +213,8 @@ public class Main {
 			}
 			return false;*/
 
-			if (name1.contains(noZip) && !name1.equals(noZip) && (lastThree.equals("png") || lastThree.startsWith("z"))) {
-				return true;
-			}
+			return name1.contains(noZip) && !name1.equals(noZip) && (lastThree.equals("png") || lastThree.startsWith("z"));
 
-			return false;
 		});
 
 		System.gc();
@@ -327,7 +231,23 @@ public class Main {
 		System.out.println("Decoded in: " + deltaTime + " seconds");
 	}
 
-	public static void upload(File file) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException {
+	/**
+	 * Returns a list of file names on google photos
+	 * @return The list of file names
+	 */
+	public ArrayList<String> listFiles() {
+		return photos.getFileNames();
+	}
+
+	/**
+	 * Upload a file to google photos
+	 * @param file The file to upload
+	 * @throws IOException
+	 * @throws NoSuchAlgorithmException
+	 * @throws ZipException
+	 * @throws InterruptedException
+	 */
+	public void upload(File file) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException { // This looks ready
 		long startTime = System.nanoTime();
 		if (file == null || !file.exists()) {
 			System.out.println("File does not exist!");
@@ -515,11 +435,21 @@ public class Main {
 		double deltaTime = (double) (endTime - startTime) / 1000000000.0;
 
 		System.out.println("Encoded in: " + deltaTime + " seconds");
-
-
 	}
 
-	public static void forceDelete(File f) throws InterruptedException {
+	/**
+	 * Delete a file from google photos
+	 * @param fileName The name of the file to delete
+	 * @return Returns true when the deletion was successful
+	 * @throws DuplicateNameException
+	 */
+	public boolean deleteFile(String fileName) throws DuplicateNameException {
+		Album album = getAlbumFromInput(fileName);
+
+		return photos.deleteAlbum(album);
+	}
+
+	private static void forceDelete(File f) throws InterruptedException {
 		if (f.exists()) {
 			boolean result = f.delete();
 

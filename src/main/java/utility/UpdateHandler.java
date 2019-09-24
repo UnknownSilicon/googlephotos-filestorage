@@ -14,7 +14,7 @@ public class UpdateHandler {
 
 	private static final String GITHUB_RELEASE_URL = "https://api.github.com/repos/jakebacker/googlephotos-filestorage/releases/latest";
 
-	private static final String BACKUP_VERSION = "v2.1.0";
+	private static final String BACKUP_VERSION = "v3.0.0";
 
 	public UpdateHandler() {
 
@@ -70,7 +70,7 @@ public class UpdateHandler {
 		return true;
 	}
 
-	public static String getLatestVersion() {
+	private static String getLatestVersion() {
 		OkHttpClient client = new OkHttpClient();
 
 		Request request = new Request.Builder()
