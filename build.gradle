@@ -3,7 +3,7 @@ plugins {
 }
 
 group 'unknownsilicon'
-version 'v2.1.0'
+version 'v3.0.0'
 
 sourceCompatibility = 1.8
 
