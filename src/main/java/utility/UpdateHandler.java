@@ -53,7 +53,7 @@ public class UpdateHandler {
 			}
 		}
 
-		System.out.println("You are using version " + version);
+		System.out.println("You are using GPFS version " + version);
 
 		String latestVersion = getLatestVersion();
 
