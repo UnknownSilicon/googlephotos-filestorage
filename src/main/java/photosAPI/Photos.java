@@ -9,6 +9,7 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.gax.core.FixedCredentialsProvider;
 import com.google.auth.oauth2.*;
+import com.google.common.io.Files;
 import com.google.photos.library.v1.PhotosLibraryClient;
 import com.google.photos.library.v1.PhotosLibrarySettings;
 import com.google.photos.library.v1.internal.InternalPhotosLibraryClient;
@@ -153,7 +154,12 @@ public class Photos {
 		return null;
 	}
 
-	public void deleteAlbum(Album album) {
+	/**
+	 * Delete an album from google photos
+	 * @param album The album to delete
+	 * @return Whether or not the deletion was successful. CURRENTLY ALWAYS RETURNS TRUE
+	 */
+	public boolean deleteAlbum(Album album) {
 
 		String albumId = album.getId();
 
@@ -162,10 +168,11 @@ public class Photos {
 
 		BatchRemoveMediaItemsFromAlbumResponse removeResponse = photosLibraryClient.batchRemoveMediaItemsFromAlbum(albumId, mediaItemIds);
 
-		System.out.println("Removing Successful");
+		// TODO: Test if removeResponse is successful
+		return true;
 	}
 
-	public ArrayList<String> getMediaItemsFromAlbum(String albumId) {
+	private ArrayList<String> getMediaItemsFromAlbum(String albumId) {
 		InternalPhotosLibraryClient.SearchMediaItemsPagedResponse response = photosLibraryClient.searchMediaItems(albumId);
 
 		ArrayList<String> mediaItemIds = new ArrayList<>();
@@ -177,19 +184,27 @@ public class Photos {
 		return mediaItemIds;
 	}
 
-	public void downloadFiles(Album album) throws IOException {
+	/**
+	 *
+	 * @param album
+	 * @return The path to the file directory
+	 * @throws IOException
+	 */
+	public File downloadFiles(Album album) throws IOException {
 		String albumId = album.getId();
 
 		ArrayList<String> mediaItemIds = getMediaItemsFromAlbum(albumId);
 
 		BatchGetMediaItemsResponse mediaItemsResponse = photosLibraryClient.batchGetMediaItems(mediaItemIds);
 
+		File tempDir = Files.createTempDir();
+
 		//ArrayList<File> files = new ArrayList<>();
 		for (MediaItemResult result : mediaItemsResponse.getMediaItemResultsList()) {
 			if (result.hasMediaItem()) {
 				MediaItem mediaItem = result.getMediaItem();
 
-				File outputFile = new File(mediaItem.getFilename());
+				File outputFile = new File(tempDir.getAbsolutePath() + File.separator + mediaItem.getFilename());
 				//files.add(outputFile);
 
 				String baseUrl = mediaItem.getBaseUrl();
@@ -202,7 +217,7 @@ public class Photos {
 			}
 		}
 
-		//return files;
+		return tempDir;
 	}
 
 	public void processUploads(List<NewMediaItem> newItems, Album album) {
