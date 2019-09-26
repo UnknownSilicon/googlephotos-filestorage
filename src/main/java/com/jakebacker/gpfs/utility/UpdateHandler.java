@@ -14,7 +14,7 @@ public class UpdateHandler {
 
 	private static final String GITHUB_RELEASE_URL = "https://api.github.com/repos/jakebacker/googlephotos-filestorage/releases/latest";
 
-	private static final String BACKUP_VERSION = "v3.0.0";
+	private static final String BACKUP_VERSION = "v3.0.1";
 
 	public UpdateHandler() {
 
@@ -26,11 +26,12 @@ public class UpdateHandler {
 		String className = clazz.getSimpleName() + ".class";
 		String classPath = clazz.getResource(className).toString();
 		String version = null;
-		if (!classPath.startsWith("jar")) {
+		// This doesn't work with being a library
+		//if (!classPath.startsWith("jar")) {
 			// Class not from JAR
-			System.out.println("Class not from JAR. Using backup version");
+			//System.out.println("Class not from JAR. Using backup version");
 			version = BACKUP_VERSION;
-		} else {
+		/*} else {
 			String manifestPath = classPath.substring(0, classPath.lastIndexOf("!") + 1) +
 					"/META-INF/MANIFEST.MF";
 			Manifest manifest = null;
@@ -51,7 +52,7 @@ public class UpdateHandler {
 				System.out.println("Unable to retrieve current version");
 				return true;
 			}
-		}
+		}*/
 
 		System.out.println("You are using GPFS version " + version);
 
