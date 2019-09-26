@@ -1,14 +1,14 @@
-package org.jakebacker.gpfs;
+package com.jakebacker.gpfs;
 
 import com.google.photos.library.v1.proto.NewMediaItem;
 import com.google.photos.types.proto.Album;
 import net.lingala.zip4j.exception.ZipException;
-import org.jakebacker.gpfs.photosAPI.DuplicateNameException;
-import org.jakebacker.gpfs.photosAPI.Photos;
-import org.jakebacker.gpfs.utility.Checksum;
-import org.jakebacker.gpfs.utility.FastRGB;
-import org.jakebacker.gpfs.utility.StringUtils;
-import org.jakebacker.gpfs.utility.UpdateHandler;
+import com.jakebacker.gpfs.photosAPI.DuplicateNameException;
+import com.jakebacker.gpfs.photosAPI.Photos;
+import com.jakebacker.gpfs.utility.Checksum;
+import com.jakebacker.gpfs.utility.FastRGB;
+import com.jakebacker.gpfs.utility.StringUtils;
+import com.jakebacker.gpfs.utility.UpdateHandler;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

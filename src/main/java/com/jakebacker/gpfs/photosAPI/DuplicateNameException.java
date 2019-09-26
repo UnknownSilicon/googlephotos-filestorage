@@ -1,4 +1,4 @@
-package org.jakebacker.gpfs.photosAPI;
+package com.jakebacker.gpfs.photosAPI;
 
 public class DuplicateNameException extends Exception {
 	public DuplicateNameException() {

@@ -1,4 +1,4 @@
-package org.jakebacker.gpfs.photosAPI;
+package com.jakebacker.gpfs.photosAPI;
 
 import com.google.api.client.auth.oauth2.*;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;

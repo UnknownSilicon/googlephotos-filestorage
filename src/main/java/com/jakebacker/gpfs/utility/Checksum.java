@@ -1,4 +1,4 @@
-package org.jakebacker.gpfs.utility;
+package com.jakebacker.gpfs.utility;
 
 import java.io.File;
 import java.io.FileInputStream;

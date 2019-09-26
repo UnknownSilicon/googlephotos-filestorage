@@ -41,7 +41,7 @@ jar {
         attributes (
             'Class-Path': configurations.compile.collect { it.getName()}.join(' '),
             'Manifest-Version': version,
-            'Main-Class': 'GooglePhotosFileStorage'
+            'Main-Class': 'com.jakebacker.gpfs.GooglePhotosFileStorage'
         )
     }
 }
@@ -51,7 +51,7 @@ task fatJar(type: Jar) {
         attributes (
                 'Class-Path': configurations.compile.collect { it.getName()}.join(' '),
                 'Manifest-Version': version,
-                'Main-Class': 'GooglePhotosFileStorage'
+                'Main-Class': 'com.jakebacker.gpfs.GooglePhotosFileStorage'
         )
     }
     baseName = project.name + '-all'
