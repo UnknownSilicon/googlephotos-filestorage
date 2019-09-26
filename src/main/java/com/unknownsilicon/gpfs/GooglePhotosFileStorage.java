@@ -1,14 +1,14 @@
-package org.unknownsilicon.gpfs;
+package com.unknownsilicon.gpfs;
 
 import com.google.photos.library.v1.proto.NewMediaItem;
 import com.google.photos.types.proto.Album;
 import net.lingala.zip4j.exception.ZipException;
-import org.unknownsilicon.gpfs.photosAPI.DuplicateNameException;
-import org.unknownsilicon.gpfs.photosAPI.Photos;
-import org.unknownsilicon.gpfs.utility.Checksum;
-import org.unknownsilicon.gpfs.utility.FastRGB;
-import org.unknownsilicon.gpfs.utility.StringUtils;
-import org.unknownsilicon.gpfs.utility.UpdateHandler;
+import com.unknownsilicon.gpfs.photosAPI.DuplicateNameException;
+import com.unknownsilicon.gpfs.photosAPI.Photos;
+import com.unknownsilicon.gpfs.utility.Checksum;
+import com.unknownsilicon.gpfs.utility.FastRGB;
+import com.unknownsilicon.gpfs.utility.StringUtils;
+import com.unknownsilicon.gpfs.utility.UpdateHandler;
 
 import javax.imageio.ImageIO;
 import java.awt.*;

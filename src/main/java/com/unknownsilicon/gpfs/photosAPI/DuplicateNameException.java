@@ -1,4 +1,4 @@
-package org.unknownsilicon.gpfs.photosAPI;
+package com.unknownsilicon.gpfs.photosAPI;
 
 public class DuplicateNameException extends Exception {
 	public DuplicateNameException() {

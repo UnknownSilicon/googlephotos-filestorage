@@ -1,4 +1,4 @@
-package org.unknownsilicon.gpfs.photosAPI;
+package com.unknownsilicon.gpfs.photosAPI;
 
 import com.google.api.client.util.IOUtils;
 import com.google.api.client.util.Maps;

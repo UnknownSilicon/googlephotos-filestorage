@@ -1,4 +1,4 @@
-package org.unknownsilicon.gpfs;
+package com.unknownsilicon.gpfs;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;

@@ -1,4 +1,4 @@
-package org.unknownsilicon.gpfs.photosAPI;
+package com.unknownsilicon.gpfs.photosAPI;
 
 import com.google.api.client.auth.oauth2.*;
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;

@@ -1,4 +1,4 @@
-package org.unknownsilicon.gpfs.utility;
+package com.unknownsilicon.gpfs.utility;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
