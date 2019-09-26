@@ -1,4 +1,4 @@
-package utility;
+package org.unknownsilicon.gpfs.utility;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;

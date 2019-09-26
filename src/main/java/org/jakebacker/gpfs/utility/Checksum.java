@@ -1,4 +1,4 @@
-package utility;
+package org.unknownsilicon.gpfs.utility;
 
 import java.io.File;
 import java.io.FileInputStream;
