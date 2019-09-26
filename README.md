@@ -14,4 +14,6 @@ The program takes each byte of the file and encodes it into the r, g, or b chann
 Run the jar file using some sort of terminal with:
 ``` java -jar googlephotos-filestorage-all-VERSION.jar```
 
+The GUI version can be found [Here](https://github.com/jakebacker/GPFS-GUI)
+
 Follow the prompts in the terminal.
