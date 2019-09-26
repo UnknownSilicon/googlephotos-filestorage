@@ -1,13 +1,10 @@
-package photosAPI;
+package org.jakebacker.gpfs.photosAPI;
 
 import com.google.api.client.util.IOUtils;
 import com.google.api.client.util.Maps;
-import com.google.api.client.util.Throwables;
 import com.google.api.client.util.store.*;
 
 import java.io.*;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.logging.Logger;
 
 /*

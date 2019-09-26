@@ -1,3 +1,5 @@
+package org.jakebacker.gpfs;
+
 import java.awt.*;
 import java.awt.image.BufferedImage;
 

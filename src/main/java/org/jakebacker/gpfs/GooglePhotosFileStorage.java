@@ -1,18 +1,21 @@
+package org.jakebacker.gpfs;
 
 import com.google.photos.library.v1.proto.NewMediaItem;
 import com.google.photos.types.proto.Album;
 import net.lingala.zip4j.exception.ZipException;
-import photosAPI.DuplicateNameException;
-import photosAPI.Photos;
-import utility.Checksum;
-import utility.FastRGB;
-import utility.StringUtils;
-import utility.UpdateHandler;
+import org.jakebacker.gpfs.photosAPI.DuplicateNameException;
+import org.jakebacker.gpfs.photosAPI.Photos;
+import org.jakebacker.gpfs.utility.Checksum;
+import org.jakebacker.gpfs.utility.FastRGB;
+import org.jakebacker.gpfs.utility.StringUtils;
+import org.jakebacker.gpfs.utility.UpdateHandler;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.GeneralSecurityException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -24,9 +27,7 @@ public class GooglePhotosFileStorage {
 	private static Photos photos;
 
 	public static void main(String[] args) throws ZipException, NoSuchAlgorithmException, DuplicateNameException, InterruptedException, IOException {
-		GooglePhotosFileStorage gpfs = new GooglePhotosFileStorage();
-
-		gpfs.download("*ABFDObjDhu5KcIK2Obg0dzIY78gXMSaRIU_V64QtV1EmJAOLZwQ5PFYQOcMAzbKqSgYVZhUhJj3L");
+		//GooglePhotosFileStorage gpfs = new GooglePhotosFileStorage();
 	}
 
 	public GooglePhotosFileStorage() {
@@ -57,13 +58,14 @@ public class GooglePhotosFileStorage {
 	/**
 	 * Downloads a file from google photos
 	 * @param name The file name or id including *
+	 * @param outputDir The directory to output the file to
 	 * @throws IOException
 	 * @throws NoSuchAlgorithmException
 	 * @throws ZipException
 	 * @throws InterruptedException
 	 * @throws DuplicateNameException
 	 */
-	public void download(String name) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException, DuplicateNameException {
+	public void download(String name, File outputDir) throws IOException, NoSuchAlgorithmException, ZipException, InterruptedException, DuplicateNameException {
 		Album album = getAlbumFromInput(name);
 
 		long startTime = System.nanoTime();
@@ -191,7 +193,7 @@ public class GooglePhotosFileStorage {
 
 		try {
 			File sourceFile = new File(files[files.length - 1].getAbsolutePath().substring(0, files[0].getAbsolutePath().lastIndexOf("." + StringUtils.getFileExtension(files[0]))));
-			zipper.unzip(sourceFile);
+			zipper.unzip(sourceFile, outputDir);
 
 		} catch (ArrayIndexOutOfBoundsException e) {
 			System.out.println("File does not exist!");
@@ -201,17 +203,17 @@ public class GooglePhotosFileStorage {
 			System.out.println("Unable to extract");
 		}
 
-		File cwd = new File(System.getProperty("user.dir"));
+		/*File cwd = new File(System.getProperty("user.dir"));
 
 		File[] delFiles = cwd.listFiles((dir12, name1) -> {
 			String noPng = files[files.length - 1].getName().substring(0, files[0].getName().lastIndexOf("." + StringUtils.getFileExtension(files[0])));
 			String noZip = noPng.substring(0, noPng.lastIndexOf("."));
 			String lastThree = name1.substring(name1.length() - 3);
 
-			/*if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
+			*//*if (name.equals(noZip + "." + lastThree) & lastThree.charAt(0)=='z') {
 				return true;
 			}
-			return false;*/
+			return false;*//*
 
 			return name1.contains(noZip) && !name1.equals(noZip) && (lastThree.equals("png") || lastThree.startsWith("z"));
 
@@ -222,7 +224,7 @@ public class GooglePhotosFileStorage {
 		for (File f : delFiles) {
 
 			forceDelete(f);
-		}
+		}*/
 
 		long endTime = System.nanoTime();
 
@@ -258,6 +260,10 @@ public class GooglePhotosFileStorage {
 
 		String zipDir = zipper.zip(file);
 		File directory = new File(zipDir);
+
+		Path tempDir = Files.createTempDirectory("gfs");
+
+		String outputDir = tempDir.toString();
 
 		int imgNum = 0;
 
@@ -397,7 +403,7 @@ public class GooglePhotosFileStorage {
 
 				fis.close();
 
-				File outputFile = new File(f.getName() + ".png");
+				File outputFile = new File(outputDir + File.separator + f.getName() + ".png");
 				ImageIO.write(ic.getImage(), "png", outputFile);
 
 				System.gc();
@@ -417,7 +423,7 @@ public class GooglePhotosFileStorage {
 
 		// Remove files
 
-		File dir = new File(System.getProperty("user.dir")); // This is cheaty
+		/*File dir = new File(System.getProperty("user.dir")); // This is cheaty
 
 		File[] delFiles = dir.listFiles((dir1, name) -> name.endsWith(".png") && name.startsWith(file.getName()));
 
@@ -428,7 +434,7 @@ public class GooglePhotosFileStorage {
 			forceDelete(f);
 		}
 
-		System.out.println();
+		System.out.println();*/
 
 		long endTime = System.nanoTime();
 

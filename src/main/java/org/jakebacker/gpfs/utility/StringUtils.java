@@ -1,4 +1,4 @@
-package utility;
+package org.jakebacker.gpfs.utility;
 
 import java.io.File;
 

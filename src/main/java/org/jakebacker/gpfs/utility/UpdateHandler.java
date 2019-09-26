@@ -1,4 +1,4 @@
-package utility;
+package org.jakebacker.gpfs.utility;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

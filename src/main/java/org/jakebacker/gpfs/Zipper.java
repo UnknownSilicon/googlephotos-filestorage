@@ -1,3 +1,5 @@
+package org.jakebacker.gpfs;
+
 import net.lingala.zip4j.core.ZipFile;
 import net.lingala.zip4j.exception.ZipException;
 import net.lingala.zip4j.model.ZipParameters;
@@ -35,12 +37,16 @@ class Zipper {
 		return outputDir;
 	}
 
-	 void unzip(File source) throws ZipException {
+	/**
+	 * Unzip the file
+	 * @param source The file to unzip
+	 * @param outputDir The directory to unzip to. MUST BE A DIRECTORY
+	 * @throws ZipException
+	 */
+	 void unzip(File source, File outputDir) throws ZipException {
 		ZipFile file = new ZipFile(source);
 
-		String outputDir = System.getProperty("user.dir");
-
-		file.extractAll(outputDir);
+		file.extractAll(outputDir.getAbsolutePath());
 
 		System.gc();
 
