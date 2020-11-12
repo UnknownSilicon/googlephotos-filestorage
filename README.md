@@ -1,5 +1,6 @@
 # googlephotos-filestorage
 Abusing Google Photos' unlimited photo storage
+NOTE: This will not work after June 1st, 2021 as Google is no longer offering unlimited photo storage.
 
 ## What is this?
 
